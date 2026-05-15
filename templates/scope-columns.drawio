@@ -1,0 +1,88 @@
+<mxfile host="app.diagrams.net" type="device" version="24.0.0">
+  <diagram name="TEMPLATE — Scope Columns (CIAM)" id="tpl-scope">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="24" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="int_scope" value="[Internal Boundary — e.g. FMI]" style="swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="900" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="zone_a" value="Zone A — [Name]" style="swimlane;startSize=24;dashed=0;strokeColor=#2E7D32;strokeWidth=1.5;fillColor=#E8F5E9;fontColor=#2E7D32;fontSize=11;fontStyle=1;" vertex="1" parent="int_scope">
+          <mxGeometry x="24" y="40" width="400" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="za_hero" value="HERO SYSTEM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=3;fontSize=13;fontStyle=1;" vertex="1" parent="zone_a">
+          <mxGeometry x="24" y="40" width="352" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="za_s1" value="Component A1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="zone_a">
+          <mxGeometry x="24" y="144" width="160" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="za_s2" value="Component A2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="zone_a">
+          <mxGeometry x="216" y="144" width="160" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="za_gap" value="⚠ Auth Gap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=1.5;fontSize=11;" vertex="1" parent="zone_a">
+          <mxGeometry x="24" y="240" width="160" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="zone_b" value="Zone B — [Name]" style="swimlane;startSize=24;dashed=0;strokeColor=#2E7D32;strokeWidth=1.5;fillColor=#F1F8E9;fontColor=#2E7D32;fontSize=11;fontStyle=1;" vertex="1" parent="int_scope">
+          <mxGeometry x="452" y="40" width="400" height="740" as="geometry"/>
+        </mxCell>
+        <mxCell id="zb_hub" value="Enabler / iPaaS" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="zone_b">
+          <mxGeometry x="24" y="40" width="352" height="72" as="geometry"/>
+        </mxCell>
+        <mxCell id="zb_s1" value="Component B1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="zone_b">
+          <mxGeometry x="24" y="144" width="160" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="zb_s2" value="Component B2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="zone_b">
+          <mxGeometry x="216" y="144" width="160" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ext_scope" value="[External Boundary — Vendor SaaS + Partners]" style="swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="980" y="40" width="580" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ext_z1" value="SaaS Systems" style="swimlane;startSize=22;dashed=0;strokeColor=#757575;strokeWidth=1;fillColor=#FAFAFA;fontColor=#424242;fontSize=11;fontStyle=1;" vertex="1" parent="ext_scope">
+          <mxGeometry x="24" y="40" width="252" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="es1" value="SaaS App 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="ext_z1">
+          <mxGeometry x="16" y="32" width="220" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="es2" value="SaaS App 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="ext_z1">
+          <mxGeometry x="16" y="112" width="220" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="es3" value="SaaS App 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="ext_z1">
+          <mxGeometry x="16" y="192" width="220" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ext_z2" value="External Partners" style="swimlane;startSize=22;dashed=0;strokeColor=#512DA8;strokeWidth=1;fillColor=#FAFAFA;fontColor=#424242;fontSize=11;fontStyle=1;" vertex="1" parent="ext_scope">
+          <mxGeometry x="300" y="40" width="252" height="500" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep1" value="Partner 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="ext_z2">
+          <mxGeometry x="16" y="32" width="220" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="ep2" value="Partner 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="ext_z2">
+          <mxGeometry x="16" y="112" width="220" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_cross1" value="REST / OData" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="es1" target="zb_hub" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_cross2" value="OData / IDoc" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;strokeColor=#2E7D32;strokeWidth=2;startArrow=classic;startFill=1;endArrow=classic;endFill=1;" edge="1" source="zb_hub" target="za_hero" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="leg_t" value="Legend" style="text;html=1;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="20" y="870" width="60" height="20" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_g" value="Green dashed = Internal boundary" style="text;html=1;fontSize=10;fontColor=#2E7D32;" vertex="1" parent="1">
+          <mxGeometry x="20" y="894" width="220" height="16" as="geometry"/>
+        </mxCell>
+        <mxCell id="leg_b" value="Black dashed = Vendor / External" style="text;html=1;fontSize=10;fontColor=#424242;" vertex="1" parent="1">
+          <mxGeometry x="20" y="914" width="220" height="16" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
