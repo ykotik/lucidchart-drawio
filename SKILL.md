@@ -1,19 +1,15 @@
 ---
 name: lucidchart-drawio
-description: >
-  Generate Lucidchart-importable architecture diagrams as draw.io XML (.drawio files)
-  with strict layout discipline and clean edge routing. Supports 12 named layout patterns
-  (hub-radial, scope-columns, horizontal swimlanes, LR data pipeline, tenant-namespace,
-  C4 context/container/component, ERD crow's-foot, UML class, sequence, tree-hierarchy,
-  flowchart-DAG, BPMN process, grid-matrix), plus vendor shape vocabularies (AWS, Azure,
-  GCP, UML, ER, BPMN). Enforces container-relative coordinates, two-layer edge rendering,
-  plan-then-emit workflow, and pre-flight validation. Outputs valid mxGraph XML that can
-  be imported directly into Lucidchart via File → Import → draw.io.
-  Triggers: "drawio", "lucidchart diagram", "architecture diagram", "drawio xml",
-  "create diagram", ".drawio", "C4 diagram", "swimlane diagram", "pipeline diagram",
-  "streaming architecture diagram", "ERD", "class diagram", "sequence diagram", "BPMN",
-  "flowchart", "org chart", "tree diagram", "AWS architecture", "Azure architecture",
-  "GCP architecture", "import into lucidchart".
+description: >-
+  Generate Lucidchart-importable architecture diagrams as draw.io XML (.drawio) with
+  strict layout discipline and clean edge routing. 15 layout patterns: hub-radial,
+  scope-columns, swimlanes, LR pipeline, tenant-namespace, C4 context/container/component,
+  ERD crow's-foot, UML class, sequence, tree-hierarchy, flowchart-DAG, BPMN, grid-matrix.
+  Vendor icon vocabularies for AWS, Azure, GCP, UML, ER, BPMN. Enforces container-relative
+  coordinates, two-layer edge rendering, plan-then-emit workflow, pre-flight validation.
+  Triggers: drawio, lucidchart diagram, architecture diagram, .drawio, C4 diagram,
+  swimlane diagram, pipeline diagram, ERD, class diagram, sequence diagram, BPMN,
+  flowchart, org chart, tree diagram, AWS/Azure/GCP architecture, import into lucidchart.
 version: 2.0.0
 ---
 
