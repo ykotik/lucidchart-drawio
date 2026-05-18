@@ -1,66 +1,210 @@
 ---
 name: lucidchart-drawio
 description: >
-  Generate Lucidchart-importable architecture diagrams as draw.io XML (.drawio files).
-  Use when asked to create, restyle, or produce diagrams for Lucidchart in any of these
-  layout patterns: hub-radial (hub-spoke), scope-columns (CIAM dual-scope), horizontal
-  swimlanes (trust/cadence bands), LR data pipeline (streaming/event-driven), or
-  tenant-namespace (nested Kafka/Flink tenant containers). Outputs valid mxGraph XML
-  that can be imported directly into Lucidchart via File → Import → draw.io.
+  Generate Lucidchart-importable architecture diagrams as draw.io XML (.drawio files)
+  with strict layout discipline and clean edge routing. Supports 12 named layout patterns
+  (hub-radial, scope-columns, horizontal swimlanes, LR data pipeline, tenant-namespace,
+  C4 context/container/component, ERD crow's-foot, UML class, sequence, tree-hierarchy,
+  flowchart-DAG, BPMN process, grid-matrix), plus vendor shape vocabularies (AWS, Azure,
+  GCP, UML, ER, BPMN). Enforces container-relative coordinates, two-layer edge rendering,
+  plan-then-emit workflow, and pre-flight validation. Outputs valid mxGraph XML that can
+  be imported directly into Lucidchart via File → Import → draw.io.
   Triggers: "drawio", "lucidchart diagram", "architecture diagram", "drawio xml",
   "create diagram", ".drawio", "C4 diagram", "swimlane diagram", "pipeline diagram",
-  "streaming architecture diagram", "import into lucidchart".
+  "streaming architecture diagram", "ERD", "class diagram", "sequence diagram", "BPMN",
+  "flowchart", "org chart", "tree diagram", "AWS architecture", "Azure architecture",
+  "GCP architecture", "import into lucidchart".
+version: 2.0.0
 ---
 
-# Lucidchart draw.io Diagram Skill
+# Lucidchart draw.io Diagram Skill (v2)
 
 ## Output requirement
 
-Always produce a `.drawio` file saved to the user's workspace. Never inline XML in chat.
+Always produce a `.drawio` file saved to the user's workspace. **Never inline XML in chat.**
+
 File naming: `NN_DiagramName/V_layout-name.drawio` (e.g. `01_System_Context/A_top_down_hub.drawio`).
+
+## Plan-then-emit workflow (mandatory)
+
+Raw LLM coordinate math fails on dense diagrams (overlaps, edges over icons, wrong parent IDs).
+**Always plan structure before emitting XML.** The plan acts as the constraint that makes the
+XML output clean.
+
+```
+Step 1. PLAN (JSON, in scratchpad)
+  → list containers, shapes, edges with parent IDs + grid cell assignments
+  → validate: every shape's parent exists; no two shapes share a grid cell;
+    every edge endpoint is a valid id
+Step 2. EMIT XML (read template, fill placeholders, apply plan)
+Step 3. SELF-CHECK (re-read XML before writing file)
+  → see "Pre-flight checklist" below
+Step 4. WRITE file with the Write tool
+Step 5. VALIDATE (optional but recommended for >20 shapes)
+  → run scripts/validate.py
+```
+
+See `references/plan-format.md` for the JSON plan schema.
 
 ## Workflow
 
-1. **Identify layout pattern** → pick from the 5 patterns below
+1. **Identify layout pattern** → pick from the 12 patterns below (or compose)
 2. **Read the relevant template** from `templates/` as a starting skeleton
-3. **Read style-dictionary.md** for color/style constants
-4. **Read gestalt-rules.md** for spacing and quality rules
-5. **Apply content** — replace placeholder labels, add/remove shapes, wire edges
-6. **Write file** to workspace using Write tool
-7. **Verify** — check: every edge has `<mxGeometry relative="1" as="geometry"/>`, all IDs unique, containers use `parent=` correctly, no XML comments
+3. **Read `references/container-coords.md`** if the diagram has any container/swimlane/pool
+4. **Read `references/style-dictionary.md`** for color/style constants
+5. **Read `references/gestalt-rules.md`** for spacing, density, alignment rules
+6. **Read `references/shape-vocabulary/<vendor>.md`** if using AWS/Azure/GCP/UML/ER/BPMN icons
+7. **Build the JSON plan** (see `references/plan-format.md`)
+8. **Validate the plan** — parents exist, no grid collisions, edge endpoints valid
+9. **Emit XML** — replace placeholders, add shapes, wire edges, apply scope styles
+10. **Self-check** — run the pre-flight checklist (below)
+11. **Write file** to workspace
+12. **Validate** (optional) — `python3 scripts/validate.py <file.drawio>`
 
-## Layout pattern selection
+## Layout pattern selection (12 patterns)
 
-| Pattern | When to use | Template file |
+| # | Pattern | When to use | Template |
+|---|---|---|---|
+| 1 | **hub-radial** | One central system, spokes to satellites | `hub-radial.drawio` |
+| 2 | **scope-columns** | Two boundary scopes side by side (internal vs vendor) | `scope-columns.drawio` |
+| 3 | **swimlanes** | Horizontal bands by trust zone / cadence / tenant | `swimlanes.drawio` |
+| 4 | **pipeline** | LR flow: sources → processing → consumers (streaming, ETL) | `pipeline.drawio` |
+| 5 | **tenant-namespace** | Nested containers per tenant (multi-tenant Kafka/Flink) | `tenant-namespace.drawio` |
+| 6 | **c4-context** | C4 L1 — Person/System/External boundaries | `c4-context.drawio` |
+| 7 | **c4-container** | C4 L2 — Containers inside a system | `c4-container.drawio` |
+| 8 | **c4-component** | C4 L3 — Components inside a container | `c4-component.drawio` |
+| 9 | **erd-crowfoot** | Entity-relationship with crow's-foot cardinality | `erd-crowfoot.drawio` |
+| 10 | **uml-class** | UML class diagram (3-compartment boxes, inheritance) | `uml-class.drawio` |
+| 11 | **sequence** | UML sequence — lifelines + messages | `sequence.drawio` |
+| 12 | **tree-hierarchy** | Org chart, decision tree, taxonomy | `tree-hierarchy.drawio` |
+| 13 | **flowchart-dag** | Flowchart with decision diamonds, start/end | `flowchart-dag.drawio` |
+| 14 | **bpmn-process** | BPMN: pools, lanes, gateways, events, tasks | `bpmn-process.drawio` |
+| 15 | **grid-matrix** | 2D classification / capability matrix | `grid-matrix.drawio` |
+
+> The numbering exceeds 12 because C4 has three sub-patterns. Pick the **finest-grained** pattern that fits.
+
+## The #1 rule: container-relative coordinates
+
+> *"The #1 swimlane mistake is using absolute coordinates for children instead of
+> container-relative coordinates."* — OpenAEC drawio-impl-swimlanes
+
+Children inside a container use coordinates **relative to the container's top-left**, not
+absolute canvas coordinates. Cross-lane edges must have `parent="<pool-id>"`, not `parent="1"`.
+
+```
+Pool      (parent="1")           x=40,  y=40        ← absolute (canvas)
+  Lane A  (parent="pool")        x=0,   y=30        ← relative to pool
+    Shape1(parent="lane_a")      x=40,  y=20        ← relative to lane A
+  Lane B  (parent="pool")        x=0,   y=270       ← relative to pool
+    Shape2(parent="lane_b")      x=40,  y=20        ← relative to lane B
+Edge Shape1→Shape2 (parent="pool", source="shape1", target="shape2")
+```
+
+Read `references/container-coords.md` for the full coord math and worked examples.
+
+## Two-layer edge rendering
+
+Edges drawn **over** icons look amateurish. Use two layers:
+
+```
+<root>
+  <mxCell id="0"/>
+  <mxCell id="1" parent="0"/>                                <!-- default layer = icons -->
+  <mxCell id="edges_layer" parent="0" value="Edges"/>        <!-- edges drawn first (behind) -->
+  <!-- ...containers and shapes with parent="1" ... -->
+  <!-- ...all edges with parent="edges_layer" ... -->
+</root>
+```
+
+When draw.io renders, layers earlier in the list draw **first** (i.e. behind). Put edges in
+the layer that comes *before* the icon layer to keep connectors behind shape glyphs.
+
+Read `references/edge-routing.md` for full edge routing patterns (orthogonal, curved,
+waypoints, label anchoring).
+
+## Pre-flight checklist (run before writing the file)
+
+| # | Check | Failure symptom |
 |---|---|---|
-| **hub-radial** | One central system with spokes to satellite systems | `templates/hub-radial.drawio` |
-| **scope-columns** | Two boundary scopes (internal vs external/vendor) side by side | `templates/scope-columns.drawio` |
-| **swimlanes** | Horizontal bands by trust zone, cadence, or tenant | `templates/swimlanes.drawio` |
-| **pipeline** | Left-to-right data flow: sources → processing → consumers | `templates/pipeline.drawio` |
-| **tenant-namespace** | Nested containers per tenant/namespace (Kafka, multi-cloud) | `templates/tenant-namespace.drawio` |
+| 1 | Every edge `mxCell` has `<mxGeometry relative="1" as="geometry"/>` child | Edge missing on import |
+| 2 | All `id` values unique across the diagram | Random shapes disappear |
+| 3 | Every shape's `parent=` exists in the document | Shape rendered at canvas origin |
+| 4 | Shape coordinates are **relative to parent** when parent is a container | Shapes appear outside their swimlane |
+| 5 | Cross-container edges have `parent="<common-ancestor>"` | Edge clipped or invisible |
+| 6 | No XML comments (`<!-- -->`) inside the model | Import may fail in Lucidchart |
+| 7 | HTML in `value` is escaped (`&amp;`, `&lt;`, `&gt;`, `&quot;`) | Malformed XML |
+| 8 | Container header reserved with `startSize=N` and no shape overlaps it | Header text overlaps content |
+| 9 | Min 40px gutter on all sides of each shape; min 30px around container headers | Crowded layout |
+| 10 | Edges in a layer **before** the icon layer | Edges drawn over icons |
+| 11 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
+| 12 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
 
-## Critical XML rules (memorize)
+## Style allowlist
 
-- Every edge `mxCell` **must** have `<mxGeometry relative="1" as="geometry"/>` child — never self-close edges
-- Children inside containers use **relative coordinates** (offset from container top-left)
-- Container cells need `swimlane` style **or** `container=1;pointerEvents=0;` on any shape
-- Always add `pointerEvents=0;` to containers that should not capture child connections
-- No XML comments (`<!-- -->`): forbidden in output
-- Escape: `&amp;` `&lt;` `&gt;` `&quot;` in attribute values
-- All `id` values must be unique across the diagram
+Use only styles from these sources (do not invent fragments):
+
+- `references/style-dictionary.md` — general palette, scope containers, edge styles
+- `references/shape-vocabulary/aws.md` — AWS official icons (mxgraph.aws4.*)
+- `references/shape-vocabulary/azure.md` — Azure icons (mxgraph.azure.*)
+- `references/shape-vocabulary/gcp.md` — GCP icons (mxgraph.gcp2.*)
+- `references/shape-vocabulary/uml-erd-bpmn.md` — UML class, ER, BPMN shapes
+
+If you need a style that is **not** in the allowlist, add it to the appropriate vocabulary
+file first and document its source — then use it.
 
 ## Scope container styles (CIAM-inspired)
 
 ```
-Green (FMI internal):  swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;
-Black (vendor/external): swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;
+Green (FMI internal):     swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;
+Black (vendor/external):  swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;
+Blue (cloud zone):        swimlane;startSize=26;dashed=1;strokeColor=#1565C0;strokeWidth=2;fillColor=none;fontColor=#1565C0;fontSize=12;fontStyle=1;
+Orange (regulated):       swimlane;startSize=26;dashed=1;strokeColor=#E65100;strokeWidth=2;fillColor=none;fontColor=#E65100;fontSize=12;fontStyle=1;
 ```
 
-## Reference files
+## Reference files (read on demand)
 
-- **xml-schema.md** — full mxGraph attribute reference, geometry, layers, tags, edge routing
-- **style-dictionary.md** — component palettes, scope styles, edge styles, legend snippets
-- **layout-patterns.md** — skeleton XML + coordinate guide for each of the 5 patterns
-- **gestalt-rules.md** — 10 design rules (flow, spacing, connectors, typography, density)
+Critical (read first when diagram has matching feature):
+- **container-coords.md** — coord math for containers, swimlanes, nested pools (read for #3, #5, #8, #14)
+- **edge-routing.md** — two-layer rendering, orthogonal/curved edges, waypoints, label anchor
+- **plan-format.md** — JSON layout plan schema (the planning step)
 
-Read a reference file when you need details beyond what's in this SKILL.md.
+Supporting (read for details):
+- **xml-schema.md** — mxGraph attribute reference, geometry, layers, tags
+- **style-dictionary.md** — color palettes, component fills, edge styles, legend snippets
+- **layout-patterns.md** — coordinate guides for all 15 patterns
+- **gestalt-rules.md** — 10 design rules (flow, spacing, typography, density)
+- **validator.md** — what `scripts/validate.py` checks and how to fix each violation
+
+Vendor vocabularies:
+- **shape-vocabulary/aws.md** — AWS service icons (compute, storage, network, db, ml, etc.)
+- **shape-vocabulary/azure.md** — Azure service icons
+- **shape-vocabulary/gcp.md** — GCP service icons
+- **shape-vocabulary/uml-erd-bpmn.md** — UML class, ER notation, BPMN gateways/events/tasks
+
+## Scripts
+
+- `scripts/validate.py` — pre-flight validator (duplicate IDs, orphan parents, missing edge
+  geometry, container/coord sanity, overlap detection). Run with:
+  `python3 scripts/validate.py path/to/diagram.drawio`
+
+## When the user does not specify a layout
+
+Pick the layout by intent:
+
+| User says... | Pick |
+|---|---|
+| "system context", "external systems and users" | c4-context |
+| "show the containers / services inside X" | c4-container |
+| "deployment / hosting / where things run" | scope-columns or swimlanes |
+| "data flow / pipeline / streaming / ETL" | pipeline |
+| "multi-tenant / per-tenant" | tenant-namespace |
+| "central X integrating with N satellites" | hub-radial |
+| "database schema / entities and relationships" | erd-crowfoot |
+| "class diagram / domain model" | uml-class |
+| "how the request flows through services" (call ordering matters) | sequence |
+| "decision tree / process with conditions" | flowchart-dag |
+| "business process with gateways / events" | bpmn-process |
+| "org chart / taxonomy / hierarchy" | tree-hierarchy |
+| "capability map / 2D classification" | grid-matrix |
+
+If still unclear, ask one question — do not guess.
