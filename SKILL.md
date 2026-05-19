@@ -10,16 +10,63 @@ description: >-
   Triggers: drawio, lucidchart diagram, architecture diagram, .drawio, C4 diagram,
   swimlane diagram, pipeline diagram, ERD, class diagram, sequence diagram, BPMN,
   flowchart, org chart, tree diagram, AWS/Azure/GCP architecture, import into lucidchart.
-version: 2.0.0
+version: 2.1.0
+features:
+  output_mode: auto          # bare | wrapped | auto  — bare <mxGraphModel> (drawio FAQ) vs full <mxfile>
+  quality_gate: on           # on | off              — edge crossings, orthogonality, length variance
+  grounding_manifest: on     # on | off              — every node/edge cites a source
+  diagram_eval: off          # on | off              — Node-F1 / Path-F1 vs ground-truth plan (DiagramEval)
+  auto_layout: off           # off | elk | dot       — call ELK or Graphviz dot for coord assignment
+  critic_judge_loop: auto    # off | on | auto       — auto = on when shapes > 15 (See it. Say it. Sorted.)
+  eval_harness: off          # on | off              — run eval/ regression suite
 ---
 
-# Lucidchart draw.io Diagram Skill (v2)
+# Lucidchart draw.io Diagram Skill (v2.1)
+
+## Feature flags
+
+The skill's behavior is controlled by the `features:` block in the YAML frontmatter above. Override per-diagram with a `<!-- lucid:feature=value -->` comment on the first line of the source plan, or by passing `--features <key>=<value>,...` to `scripts/validate.py` / `scripts/elk-layout.py` where supported. **Each feature can be turned off independently.**
+
+| Flag | Values | Default | What it does |
+|---|---|---|---|
+| `output_mode` | `bare` / `wrapped` / `auto` | `auto` | Emit bare `<mxGraphModel>` (drawio FAQ) for single-page; full `<mxfile>` wrapper for multi-page. `auto` picks based on `diagrams.length`. |
+| `quality_gate` | `on` / `off` | `on` | Adds edge-crossings, orthogonality conformance, edge-length variance, area utilization checks to validator. |
+| `grounding_manifest` | `on` / `off` | `on` | Every node/edge in the plan must include a non-empty `source` field. Validator rejects orphans. |
+| `diagram_eval` | `on` / `off` | `off` | Computes Node-F1 / Path-F1 (DiagramEval, EMNLP 2025) when a ground-truth plan is provided. |
+| `auto_layout` | `off` / `elk` / `dot` | `off` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. |
+| `critic_judge_loop` | `off` / `on` / `auto` | `auto` | Iterative Critic→Candidates→Judge refinement (`auto` = on when >15 shapes). |
+| `eval_harness` | `on` / `off` | `off` | Runs `eval/` regression suite against fixed reference diagrams. |
+
+To turn everything off (legacy v2.0 behavior): set every flag to `off` except `output_mode: wrapped`.
 
 ## Output requirement
 
 Always produce a `.drawio` file saved to the user's workspace. **Never inline XML in chat.**
 
 File naming: `NN_DiagramName/V_layout-name.drawio` (e.g. `01_System_Context/A_top_down_hub.drawio`).
+
+## Output mode — bare vs wrapped (`output_mode`)
+
+Per the drawio FAQ (drawio.com/doc/faq/ai-drawio-generation): *"AI systems can also generate just the `<mxGraphModel>` element without the `<mxfile>` and `<diagram>` wrappers... The simplified format is recommended for AI generation when multi-page support is not needed."*
+
+Pick by mode:
+
+- **`output_mode: bare`** — emit a bare fragment. Fewer XML nesting levels, lower syntax-error rate. Use for single-page diagrams.
+  ```xml
+  <mxGraphModel adaptiveColors="auto">
+    <root>
+      <mxCell id="0"/>
+      <mxCell id="1" parent="0"/>
+      <!-- shapes and edges, parent="1" or container ids -->
+    </root>
+  </mxGraphModel>
+  ```
+- **`output_mode: wrapped`** — emit the full `<mxfile><diagram><mxGraphModel>...` document. Required for multi-page diagrams (more than one `<diagram>` element).
+- **`output_mode: auto`** (default) — use bare when the plan contains exactly one page; otherwise wrapped.
+
+draw.io accepts both formats and auto-wraps bare fragments on open. Lucidchart's drawio importer accepts both.
+
+> **Heads-up on existing templates:** all 15 `templates/*.drawio` files still use the wrapped form so they remain openable in any reader without re-wrapping. When the skill emits *new* diagrams, follow the `output_mode` flag.
 
 ## Plan-then-emit workflow (mandatory)
 
