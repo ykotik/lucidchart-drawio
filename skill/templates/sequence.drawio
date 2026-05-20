@@ -1,0 +1,84 @@
+<mxfile host="drawio-architect" type="device">
+  <diagram name="Sequence" id="seq">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="edges" value="Edges" parent="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title" value="Sequence Diagram: Login Flow" style="text;html=1;align=center;verticalAlign=middle;fontSize=18;fontStyle=1;fontColor=#1565C0;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="1520" height="32" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ll_user" value="User" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;strokeColor=#424242;fillColor=#FFFFFF;size=40;" vertex="1" parent="1">
+          <mxGeometry x="160" y="80" width="120" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll_web" value="Web App" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;strokeColor=#424242;fillColor=#FFFFFF;size=40;" vertex="1" parent="1">
+          <mxGeometry x="460" y="80" width="120" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll_api" value="API" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;strokeColor=#424242;fillColor=#FFFFFF;size=40;" vertex="1" parent="1">
+          <mxGeometry x="760" y="80" width="120" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll_auth" value="Auth Service" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;strokeColor=#424242;fillColor=#FFFFFF;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1060" y="80" width="120" height="700" as="geometry"/>
+        </mxCell>
+        <mxCell id="ll_db" value="User DB" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;dropTarget=0;collapsible=0;recursiveResize=0;outlineConnect=0;fontSize=12;strokeColor=#424242;fillColor=#FFFFFF;size=40;" vertex="1" parent="1">
+          <mxGeometry x="1360" y="80" width="120" height="700" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="m1" value="1: enter credentials" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="280" y="160" as="sourcePoint"/>
+            <mxPoint x="460" y="160" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m2" value="2: POST /login" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="580" y="220" as="sourcePoint"/>
+            <mxPoint x="760" y="220" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m3" value="3: verifyCredentials()" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="880" y="280" as="sourcePoint"/>
+            <mxPoint x="1060" y="280" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m4" value="4: SELECT user WHERE email=?" style="html=1;verticalAlign=bottom;endArrow=block;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1180" y="340" as="sourcePoint"/>
+            <mxPoint x="1360" y="340" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m5" value="5: user record" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;endSize=8;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1360" y="400" as="sourcePoint"/>
+            <mxPoint x="1180" y="400" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m6" value="6: token + claims" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;endSize=8;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="1060" y="460" as="sourcePoint"/>
+            <mxPoint x="880" y="460" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m7" value="7: 200 OK + JWT" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;endSize=8;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="760" y="520" as="sourcePoint"/>
+            <mxPoint x="580" y="520" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="m8" value="8: dashboard rendered" style="html=1;verticalAlign=bottom;endArrow=open;dashed=1;endFill=0;endSize=8;rounded=0;edgeStyle=none;curved=0;strokeColor=#424242;fontSize=11;" edge="1" parent="edges">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="460" y="580" as="sourcePoint"/>
+            <mxPoint x="280" y="580" as="targetPoint"/>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="legend" value="&lt;b&gt;Legend&lt;/b&gt;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Solid + filled = sync call&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;Dashed + open = response" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;align=left;verticalAlign=middle;fontSize=11;spacingLeft=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="820" width="900" height="32" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

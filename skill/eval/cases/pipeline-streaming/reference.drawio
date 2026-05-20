@@ -1,0 +1,121 @@
+<mxfile host="app.diagrams.net" type="device" version="24.0.0">
+  <diagram name="TEMPLATE — LR Data Pipeline" id="tpl-pipe">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="24" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="src_scope" value="Sources" style="swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="24" y="40" width="300" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="src_grp1" value="Group A" style="swimlane;startSize=20;dashed=0;strokeColor=#757575;strokeWidth=1;fillColor=#FAFAFA;fontSize=10;fontStyle=1;" vertex="1" parent="src_scope">
+          <mxGeometry x="16" y="40" width="268" height="250" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg1_s1" value="Source A1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="src_grp1">
+          <mxGeometry x="16" y="32" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg1_s2" value="Source A2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="src_grp1">
+          <mxGeometry x="16" y="112" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg1_s3" value="Source A3 (gap)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=1.5;fontSize=11;" vertex="1" parent="src_grp1">
+          <mxGeometry x="16" y="192" width="236" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="src_grp2" value="Group B" style="swimlane;startSize=20;dashed=0;strokeColor=#757575;strokeWidth=1;fillColor=#FAFAFA;fontSize=10;fontStyle=1;" vertex="1" parent="src_scope">
+          <mxGeometry x="16" y="314" width="268" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg2_s1" value="Source B1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="src_grp2">
+          <mxGeometry x="16" y="32" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="sg2_s2" value="Source B2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="src_grp2">
+          <mxGeometry x="16" y="112" width="236" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="proc_scope" value="Processing Layer" style="swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="364" y="40" width="560" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ingest" value="Ingest / Broker&#xa;[e.g. Kafka Topics]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="proc_scope">
+          <mxGeometry x="24" y="40" width="512" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="proc_grp" value="Processing Jobs" style="swimlane;startSize=22;dashed=0;strokeColor=#2E7D32;strokeWidth=1;fillColor=#F1F8E9;fontSize=10;fontStyle=1;" vertex="1" parent="proc_scope">
+          <mxGeometry x="24" y="152" width="512" height="240" as="geometry"/>
+        </mxCell>
+        <mxCell id="pj1" value="Job 1&#xa;[e.g. Flink SQL]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6F0;strokeColor=#CC3366;strokeWidth=1.5;fontSize=11;" vertex="1" parent="proc_grp">
+          <mxGeometry x="16" y="32" width="220" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="pj2" value="Job 2&#xa;[enrichment]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6F0;strokeColor=#CC3366;strokeWidth=1.5;fontSize=11;" vertex="1" parent="proc_grp">
+          <mxGeometry x="276" y="32" width="220" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="pj3" value="Job 3&#xa;[aggregation]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6F0;strokeColor=#CC3366;strokeWidth=1.5;fontSize=11;" vertex="1" parent="proc_grp">
+          <mxGeometry x="16" y="144" width="220" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="storage" value="Data Storage&#xa;[e.g. Apache Iceberg]" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#6C8EBF;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="proc_scope">
+          <mxGeometry x="24" y="424" width="240" height="120" as="geometry"/>
+        </mxCell>
+        <mxCell id="analytics" value="Analytics&#xa;[e.g. Dremio]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="proc_scope">
+          <mxGeometry x="296" y="448" width="240" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="core" value="CORE SYSTEM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=3;fontSize=13;fontStyle=1;" vertex="1" parent="proc_scope">
+          <mxGeometry x="24" y="600" width="512" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cons_scope" value="Consumers" style="swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="964" y="40" width="600" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cons_grp1" value="Internal Consumers" style="swimlane;startSize=20;dashed=0;strokeColor=#2E7D32;strokeWidth=1;fillColor=#F1F8E9;fontSize=10;fontStyle=1;" vertex="1" parent="cons_scope">
+          <mxGeometry x="16" y="40" width="268" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="cs1" value="Consumer 1&#xa;[UI / App]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="cons_grp1">
+          <mxGeometry x="16" y="32" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="cs2" value="Consumer 2&#xa;[Reporting]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="cons_grp1">
+          <mxGeometry x="16" y="112" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="cs3" value="Consumer 3&#xa;[API Clients]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="cons_grp1">
+          <mxGeometry x="16" y="192" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="cs4" value="Consumer 4&#xa;[B2B / EDI]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="cons_grp1">
+          <mxGeometry x="16" y="272" width="236" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="cons_grp2" value="External Consumers" style="swimlane;startSize=20;dashed=0;strokeColor=#512DA8;strokeWidth=1;fillColor=#FAFAFA;fontSize=10;fontStyle=1;" vertex="1" parent="cons_scope">
+          <mxGeometry x="316" y="40" width="268" height="360" as="geometry"/>
+        </mxCell>
+        <mxCell id="ce1" value="External 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="cons_grp2">
+          <mxGeometry x="16" y="32" width="236" height="56" as="geometry"/>
+        </mxCell>
+        <mxCell id="ce2" value="External 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="cons_grp2">
+          <mxGeometry x="16" y="112" width="236" height="56" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_s1_i" value="normalized" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="sg1_s1" target="ingest" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_s2_i" value="CDC/JDBC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="sg1_s2" target="ingest" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_i_pj" value="stream" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;strokeColor=#2E7D32;strokeWidth=1.5;" edge="1" source="ingest" target="pj1" parent="proc_scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_pj_store" value="enriched data" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="pj1" target="storage" parent="proc_scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_pj_core" value="data products" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="pj2" target="core" parent="proc_scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_core_c1" value="SSE/REST" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;strokeColor=#2E7D32;strokeWidth=1.5;" edge="1" source="core" target="cs1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_core_ce" value="data products via pull" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="core" target="ce1" parent="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

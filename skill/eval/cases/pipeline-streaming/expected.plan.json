@@ -1,0 +1,11 @@
+{
+  "pattern": "pipeline",
+  "canvas": {"w":1600,"h":900},
+  "containers": [],
+  "shapes": [
+    {"id":"s1","label":"Kafka","cite":"template-default"},
+    {"id":"s2","label":"Webhook","cite":"template-default"},
+    {"id":"s3","label":"CDC","cite":"template-default"}
+  ],
+  "edges": []
+}

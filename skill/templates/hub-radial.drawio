@@ -1,0 +1,77 @@
+<mxfile host="app.diagrams.net" type="device" version="24.0.0">
+  <diagram name="TEMPLATE — Hub-Radial" id="tpl-hub">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="24" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="scope" value="[SCOPE NAME]" style="swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="40" width="1360" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="hub" value="HUB SYSTEM" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=3;fontSize=13;fontStyle=1;" vertex="1" parent="scope">
+          <mxGeometry x="480" y="48" width="400" height="80" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="left1" value="Satellite L1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="48" y="192" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="left2" value="Satellite L2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="48" y="312" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="left3" value="Satellite L3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="48" y="432" width="200" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="right1" value="Satellite R1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="1112" y="192" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="right2" value="Satellite R2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="1112" y="312" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="right3" value="Satellite R3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="1112" y="432" width="200" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="bot1" value="Consumer 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="240" y="648" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="bot2" value="Consumer 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="576" y="648" width="200" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="bot3" value="Consumer 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="scope">
+          <mxGeometry x="912" y="648" width="200" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_l1" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="left1" target="hub" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_l2" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="left2" target="hub" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_l3" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="left3" target="hub" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r1" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="right1" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r2" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="right2" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_r3" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="right3" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_b1" value="output" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="bot1" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_b2" value="output" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="bot2" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e_b3" value="output" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="hub" target="bot3" parent="scope">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

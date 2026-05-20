@@ -1,0 +1,75 @@
+<mxfile host="app.diagrams.net" type="device" version="24.0.0">
+  <diagram name="text-overflow" id="text-overflow-ref">
+    <mxGraphModel dx="1600" dy="900" grid="1" gridSize="24" guides="1"
+                  tooltips="1" connect="1" arrows="1" fold="1" page="1"
+                  pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="edges_layer" value="Edges" parent="0"/>
+
+        <mxCell id="scope_internal" value="Internal"
+          style="swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;strokeWidth=2;fillColor=none;fontColor=#2E7D32;fontSize=12;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="760" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="okta" value="Okta Workforce Identity Cloud"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;"
+          vertex="1" parent="scope_internal">
+          <mxGeometry x="40" y="96" width="200" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="sap"
+          value="&lt;b&gt;SAP S/4HANA&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:10px;&quot;&gt;[ERP Core] — Finance, HR, Procurement&lt;/span&gt;"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;"
+          vertex="1" parent="scope_internal">
+          <mxGeometry x="40" y="240" width="240" height="72" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="aws_cognito" value="AWS Cognito User Pools"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E3F2FD;strokeColor=#1565C0;strokeWidth=1.5;fontSize=11;"
+          vertex="1" parent="scope_internal">
+          <mxGeometry x="40" y="384" width="200" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="scope_vendor" value="Vendor / External"
+          style="swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;"
+          vertex="1" parent="1">
+          <mxGeometry x="840" y="40" width="720" height="820" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="azure_adb2c" value="Microsoft Azure Active Directory B2C"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=1.5;fontSize=11;"
+          vertex="1" parent="scope_vendor">
+          <mxGeometry x="40" y="96" width="240" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="ldap" value="Legacy On-Premise LDAP Directory Server"
+          style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#424242;strokeWidth=1.5;fontSize=11;"
+          vertex="1" parent="scope_vendor">
+          <mxGeometry x="40" y="240" width="240" height="64" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e1" value="SAML 2.0 federation"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;"
+          edge="1" source="azure_adb2c" target="okta" parent="edges_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e2" value="SCIM provisioning"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;"
+          edge="1" source="okta" target="sap" parent="edges_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e3" value="JWT delegation"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;"
+          edge="1" source="okta" target="aws_cognito" parent="edges_layer">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
