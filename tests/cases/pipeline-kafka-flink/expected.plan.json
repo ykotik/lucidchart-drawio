@@ -1,0 +1,232 @@
+{
+  "pattern": "pipeline",
+  "canvas": {
+    "w": 1800,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "src_iot",
+      "label": "IoT Sensors",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_click",
+      "label": "Clickstream",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_mob",
+      "label": "Mobile Events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_api",
+      "label": "API Events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "kf_raw",
+      "label": "Kafka raw-events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "kf_enrich",
+      "label": "Kafka enriched-events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "kf_alerts",
+      "label": "Kafka alerts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "fl_dedup",
+      "label": "Flink Dedup Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "fl_enrich",
+      "label": "Flink Enrich Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "fl_agg",
+      "label": "Flink Aggregate Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "fl_anomaly",
+      "label": "Flink Anomaly Detect",
+      "cite": "user-stated"
+    },
+    {
+      "id": "snk_es",
+      "label": "Elasticsearch",
+      "cite": "user-stated"
+    },
+    {
+      "id": "snk_s3",
+      "label": "S3 Data Lake",
+      "cite": "user-stated"
+    },
+    {
+      "id": "snk_pd",
+      "label": "PagerDuty",
+      "cite": "user-stated"
+    },
+    {
+      "id": "snk_graf",
+      "label": "Grafana Dashboard",
+      "cite": "user-stated"
+    },
+    {
+      "id": "db_meta",
+      "label": "Metadata DB",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "src_iot",
+      "target": "kf_raw",
+      "label": "Publishes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "src_click",
+      "target": "kf_raw",
+      "label": "Publishes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "src_mob",
+      "target": "kf_raw",
+      "label": "Publishes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "src_api",
+      "target": "kf_raw",
+      "label": "Publishes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "kf_raw",
+      "target": "fl_dedup",
+      "label": "Consumes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "fl_dedup",
+      "target": "fl_enrich",
+      "label": "Streams deduped",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "fl_enrich",
+      "target": "kf_enrich",
+      "label": "Publishes enriched",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "fl_enrich",
+      "target": "db_meta",
+      "label": "Looks up metadata",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "kf_enrich",
+      "target": "fl_agg",
+      "label": "Consumes enriched",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "kf_enrich",
+      "target": "fl_anomaly",
+      "label": "Consumes enriched",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "fl_agg",
+      "target": "snk_es",
+      "label": "Indexes metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "fl_agg",
+      "target": "snk_s3",
+      "label": "Archives batch data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "fl_anomaly",
+      "target": "kf_alerts",
+      "label": "Publishes anomalies",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "kf_alerts",
+      "target": "snk_pd",
+      "label": "Triggers alerts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "kf_alerts",
+      "target": "snk_graf",
+      "label": "Displays alert overlays",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "snk_es",
+      "target": "snk_graf",
+      "label": "Visualizes metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "fl_dedup",
+      "target": "kf_alerts",
+      "label": "Publishes parse errors",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "src_api",
+      "target": "db_meta",
+      "label": "Writes configurations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "fl_enrich",
+      "target": "snk_s3",
+      "label": "Audits raw payload",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "fl_anomaly",
+      "target": "snk_es",
+      "label": "Indexes anomaly logs",
+      "cite": "user-stated"
+    }
+  ]
+}

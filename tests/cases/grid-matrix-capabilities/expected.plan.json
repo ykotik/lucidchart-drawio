@@ -1,0 +1,252 @@
+{
+  "pattern": "grid-matrix",
+  "canvas": {
+    "w": 1800,
+    "h": 1200
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "cell_1_1",
+      "label": "Build Core Engine",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_1_2",
+      "label": "Buy SaaS Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_1_3",
+      "label": "Partner System Integrator",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_2_1",
+      "label": "Build Custom Pipeline",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_2_2",
+      "label": "Buy Snowflake Warehouse",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_2_3",
+      "label": "Partner Databricks Analytics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_3_1",
+      "label": "Build Custom IAM RBAC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_3_2",
+      "label": "Buy Okta Auth0 SSO",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_3_3",
+      "label": "Partner Security Audit Corp",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_4_1",
+      "label": "Build Terraform Modules",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_4_2",
+      "label": "Buy Datadog SaaS APM",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_4_3",
+      "label": "Partner Managed AWS SRE",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_5_1",
+      "label": "Build Custom Portal UI",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_5_2",
+      "label": "Buy Salesforce Sales CRM",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_5_3",
+      "label": "Partner Hubspot Marketing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_6_1",
+      "label": "Build Event Mesh Broker",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_6_2",
+      "label": "Buy MuleSoft ESB License",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cell_6_3",
+      "label": "Partner Confluent Cloud",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_core",
+      "label": "Core Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_data",
+      "label": "Data & Analytics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_sec",
+      "label": "Security & Compliance",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_devops",
+      "label": "DevOps & Infra",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_cust",
+      "label": "Customer Engagement",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_integ",
+      "label": "Integration",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_build",
+      "label": "Build Strategy",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_buy",
+      "label": "Buy Strategy",
+      "cite": "user-stated"
+    },
+    {
+      "id": "grid_partner",
+      "label": "Partner Strategy",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "cell_1_1",
+      "target": "cell_1_2",
+      "label": "Migration path",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "cell_1_2",
+      "target": "cell_1_3",
+      "label": "Integration path",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "cell_2_1",
+      "target": "cell_2_2",
+      "label": "Ingestion path",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "cell_2_2",
+      "target": "cell_2_3",
+      "label": "Analytics link",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "cell_3_1",
+      "target": "cell_3_2",
+      "label": "Federation link",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "cell_3_2",
+      "target": "cell_3_3",
+      "label": "Audit validation",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "cell_4_1",
+      "target": "cell_4_2",
+      "label": "Telemetry setup",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "cell_4_2",
+      "target": "cell_4_3",
+      "label": "Managed operations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "cell_5_1",
+      "target": "cell_5_2",
+      "label": "Customer sync",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "cell_5_2",
+      "target": "cell_5_3",
+      "label": "Marketing handoff",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "cell_6_1",
+      "target": "cell_6_2",
+      "label": "Broker connection",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "cell_6_2",
+      "target": "cell_6_3",
+      "label": "Managed Kafka link",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "grid_build",
+      "target": "cell_1_1",
+      "label": "Applies to",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "grid_buy",
+      "target": "cell_1_2",
+      "label": "Applies to",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "grid_partner",
+      "target": "cell_1_3",
+      "label": "Applies to",
+      "cite": "user-stated"
+    }
+  ]
+}

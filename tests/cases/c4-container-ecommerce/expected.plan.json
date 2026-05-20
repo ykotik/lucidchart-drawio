@@ -1,0 +1,248 @@
+{
+  "pattern": "c4-container",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "cont_web",
+      "label": "Web App",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_bff",
+      "label": "Mobile BFF",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_gw",
+      "label": "API Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_prod",
+      "label": "Product Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_order",
+      "label": "Order Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_cart",
+      "label": "Cart Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_user",
+      "label": "User Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_search",
+      "label": "Search Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_notif",
+      "label": "Notification Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_cdn",
+      "label": "CDN",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_pay",
+      "label": "Payment Gateway",
+      "cite": "integration-docs"
+    },
+    {
+      "id": "ext_ship",
+      "label": "Shipping API",
+      "cite": "logistics-docs"
+    },
+    {
+      "id": "ext_recs",
+      "label": "Recommendation Engine",
+      "cite": "ai-docs"
+    },
+    {
+      "id": "user_buyer",
+      "label": "Buyer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "user_admin",
+      "label": "Ecom Admin",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "user_buyer",
+      "target": "cont_cdn",
+      "label": "Requests static site",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "user_buyer",
+      "target": "cont_web",
+      "label": "Views frontend",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "user_buyer",
+      "target": "cont_bff",
+      "label": "Uses mobile app",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "cont_web",
+      "target": "cont_gw",
+      "label": "APIs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "cont_bff",
+      "target": "cont_gw",
+      "label": "APIs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "cont_gw",
+      "target": "cont_user",
+      "label": "Authenticates",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "cont_gw",
+      "target": "cont_prod",
+      "label": "Gets catalog",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "cont_gw",
+      "target": "cont_cart",
+      "label": "Manages cart",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "cont_gw",
+      "target": "cont_order",
+      "label": "Places order",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "cont_gw",
+      "target": "cont_search",
+      "label": "Searches items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "cont_order",
+      "target": "ext_pay",
+      "label": "Charges client",
+      "cite": "integration-docs"
+    },
+    {
+      "id": "edge_11",
+      "source": "cont_order",
+      "target": "ext_ship",
+      "label": "Creates shipment",
+      "cite": "logistics-docs"
+    },
+    {
+      "id": "edge_12",
+      "source": "cont_order",
+      "target": "cont_notif",
+      "label": "Triggers confirm",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "cont_prod",
+      "target": "ext_recs",
+      "label": "Fetches similar items",
+      "cite": "ai-docs"
+    },
+    {
+      "id": "edge_14",
+      "source": "cont_search",
+      "target": "cont_prod",
+      "label": "Syncs index",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "cont_notif",
+      "target": "user_buyer",
+      "label": "Sends email",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "user_admin",
+      "target": "cont_gw",
+      "label": "Manages inventory",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "cont_gw",
+      "target": "cont_notif",
+      "label": "Broadcasts alert",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "cont_cart",
+      "target": "cont_prod",
+      "label": "Validates pricing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "cont_order",
+      "target": "cont_cart",
+      "label": "Clears cart",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "cont_order",
+      "target": "cont_user",
+      "label": "Validates address",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "cont_web",
+      "target": "cont_cdn",
+      "label": "Loads assets",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "cont_bff",
+      "target": "cont_prod",
+      "label": "Direct read",
+      "cite": "user-stated"
+    }
+  ]
+}

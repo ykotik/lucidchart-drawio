@@ -1,0 +1,232 @@
+{
+  "pattern": "flowchart-dag",
+  "canvas": {
+    "w": 1600,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "node_start",
+      "label": "Start",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_push",
+      "label": "Git Push",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_lint",
+      "label": "Lint Check",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dec_lint",
+      "label": "Lint Passes?",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_unit",
+      "label": "Unit Tests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_integ",
+      "label": "Integration Tests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dec_tests",
+      "label": "Tests Pass?",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_build",
+      "label": "Build Docker Image",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_push_reg",
+      "label": "Push to Registry",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_deploy_stg",
+      "label": "Deploy to Staging",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_smoke",
+      "label": "Smoke Tests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dec_smoke",
+      "label": "Smoke Passes?",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_deploy_prod",
+      "label": "Deploy to Production",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_health",
+      "label": "Health Check",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_end",
+      "label": "End",
+      "cite": "user-stated"
+    },
+    {
+      "id": "node_alert",
+      "label": "Alert Developer",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "node_start",
+      "target": "node_push",
+      "label": "triggers",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "node_push",
+      "target": "node_lint",
+      "label": "runs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "node_lint",
+      "target": "dec_lint",
+      "label": "checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "dec_lint",
+      "target": "node_unit",
+      "label": "Yes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "dec_lint",
+      "target": "node_alert",
+      "label": "No",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "node_unit",
+      "target": "node_integ",
+      "label": "runs next",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "node_integ",
+      "target": "dec_tests",
+      "label": "checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "dec_tests",
+      "target": "node_build",
+      "label": "Yes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "dec_tests",
+      "target": "node_alert",
+      "label": "No",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "node_build",
+      "target": "node_push_reg",
+      "label": "outputs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "node_push_reg",
+      "target": "node_deploy_stg",
+      "label": "installs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "node_deploy_stg",
+      "target": "node_smoke",
+      "label": "starts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "node_smoke",
+      "target": "dec_smoke",
+      "label": "checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "dec_smoke",
+      "target": "node_deploy_prod",
+      "label": "Yes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "dec_smoke",
+      "target": "node_alert",
+      "label": "No",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "node_deploy_prod",
+      "target": "node_health",
+      "label": "verifies",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "node_health",
+      "target": "node_end",
+      "label": "completes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "node_alert",
+      "target": "node_push",
+      "label": "Retries commit",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "node_health",
+      "target": "node_alert",
+      "label": "Failed health checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "dec_lint",
+      "target": "node_end",
+      "label": "Terminate abort",
+      "cite": "user-stated"
+    }
+  ]
+}

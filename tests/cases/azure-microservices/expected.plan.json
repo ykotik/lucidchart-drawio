@@ -1,0 +1,209 @@
+{
+  "pattern": "c4-container",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [
+    {
+      "id": "aks_cont",
+      "label": "AKS Kubernetes Cluster",
+      "cite": "user-stated"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "az_fd",
+      "label": "Azure Front Door",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_apim",
+      "label": "API Management APIM",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_b2c",
+      "label": "Azure AD B2C",
+      "cite": "user-stated"
+    },
+    {
+      "id": "svc_auth",
+      "label": "Auth Service Container",
+      "cite": "user-stated"
+    },
+    {
+      "id": "svc_prod",
+      "label": "Product Service Container",
+      "cite": "user-stated"
+    },
+    {
+      "id": "svc_order",
+      "label": "Order Service Container",
+      "cite": "user-stated"
+    },
+    {
+      "id": "svc_notif",
+      "label": "Notification Service Container",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_eg",
+      "label": "Event Grid Hub",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_cosmos",
+      "label": "CosmosDB Data Store",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_sb",
+      "label": "Azure Service Bus",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_blob",
+      "label": "Azure Blob Storage",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_ai",
+      "label": "Application Insights",
+      "cite": "user-stated"
+    },
+    {
+      "id": "az_kv",
+      "label": "Azure Key Vault",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "az_fd",
+      "target": "az_apim",
+      "label": "Ingress traffic route",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "az_apim",
+      "target": "svc_auth",
+      "label": "Authenticates",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "az_apim",
+      "target": "svc_prod",
+      "label": "API requests catalog",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "az_apim",
+      "target": "svc_order",
+      "label": "API requests order creation",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "svc_auth",
+      "target": "az_b2c",
+      "label": "Token validation checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "svc_prod",
+      "target": "az_cosmos",
+      "label": "Reads catalog item documents",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "svc_order",
+      "target": "az_cosmos",
+      "label": "Writes client transaction states",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "svc_order",
+      "target": "az_sb",
+      "label": "Publishes order events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "az_sb",
+      "target": "svc_notif",
+      "label": "Consumes trigger notifications",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "svc_notif",
+      "target": "az_eg",
+      "label": "Dispatches transaction alerts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "svc_prod",
+      "target": "az_blob",
+      "label": "Retrieves item images assets",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "aks_cont",
+      "target": "az_ai",
+      "label": "Exports platform trace telemetry",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "svc_auth",
+      "target": "az_kv",
+      "label": "Fetches JWT signing keys credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "svc_order",
+      "target": "az_kv",
+      "label": "Fetches database connection properties",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "az_apim",
+      "target": "az_ai",
+      "label": "Tracks API endpoint duration metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "az_eg",
+      "target": "az_blob",
+      "label": "Archived events storage trigger",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "az_fd",
+      "target": "az_b2c",
+      "label": "Direct client logins path",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "az_cosmos",
+      "target": "az_ai",
+      "label": "Tracks query executions logs",
+      "cite": "user-stated"
+    }
+  ]
+}

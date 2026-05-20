@@ -96,6 +96,8 @@ Step 3. SELF-CHECK (re-read XML before writing file)
 Step 4. WRITE file with the Write tool
 Step 5. VALIDATE (optional but recommended for >20 shapes)
   → run scripts/validate.py
+Step 6. OVERLAP REMOVAL (mandatory for dense/complex diagrams)
+  → run scripts/elk-layout.py <file.drawio> --engine neato to automatically resolve overlaps
 ```
 
 See `references/plan-format.md` for the JSON plan schema.
@@ -136,6 +138,7 @@ See `eval/README.md` for the full layout and metrics tracked (Node F1, Path F1, 
 10. **Self-check** — run the pre-flight checklist (below)
 11. **Write file** to workspace
 12. **Validate** (optional) — `python3 scripts/validate.py <file.drawio>`
+13. **Overlap Removal** (mandatory for dense/complex diagrams) — run `python3 scripts/elk-layout.py <file.drawio> --engine neato`
 
 ## Layout pattern selection (12 patterns)
 
@@ -244,7 +247,12 @@ Critical (read first when diagram has matching feature):
 - **container-coords.md** — coord math for containers, swimlanes, nested pools (read for #3, #5, #8, #14)
 - **edge-routing.md** — two-layer rendering, orthogonal/curved edges, waypoints, label anchor
 - **plan-format.md** — JSON layout plan schema (the planning step)
-- **text-metrics.md** — label measurement algorithm, char-table widths, min-size rules (read when any label > 20 chars or using multi-line C4-style labels)
+- **font-fit.md** — adaptive `fontSize` algorithm and bounds (read when any label > 20 chars or using multi-line C4-style labels)
+
+Examples & guides:
+- **prompt-examples.md** — 5 canonical prompts (C4 container, pipeline, BPMN swimlanes, ERD, multi-tenant) — copy/paste starting points
+- **layout-engines.md** — when to use ELK vs Graphviz dot; direction guide per pattern
+- **critic-judge-loop.md** — iterative refinement protocol for >15-shape diagrams
 
 Supporting (read for details):
 - **xml-schema.md** — mxGraph attribute reference, geometry, layers, tags
@@ -261,9 +269,14 @@ Vendor vocabularies:
 
 ## Scripts
 
-- `scripts/validate.py` — pre-flight validator (duplicate IDs, orphan parents, missing edge
-  geometry, container/coord sanity, overlap detection). Run with:
-  `python3 scripts/validate.py path/to/diagram.drawio`
+- `scripts/validate.py` — pre-flight validator (E0xx errors, W1xx warnings, Q4xx quality metrics, G5xx grounding, D6xx DiagramEval F1). Run with: `python3 scripts/validate.py <file>.drawio`
+- `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
+- `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
+
+
+## Prompt examples
+
+For 5 ready-to-adapt prompts (C4 container, LR pipeline, BPMN swimlanes, ERD, multi-tenant Kafka), see `references/prompt-examples.md`. Each example calls out which flags / features it exercises best.
 
 ## When the user does not specify a layout
 

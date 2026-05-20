@@ -1,0 +1,290 @@
+{
+  "pattern": "swimlanes",
+  "canvas": {
+    "w": 1800,
+    "h": 1200
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "l_plan",
+      "label": "Plan Phase",
+      "cite": "user-stated"
+    },
+    {
+      "id": "l_dev",
+      "label": "Develop Phase",
+      "cite": "user-stated"
+    },
+    {
+      "id": "l_build",
+      "label": "Build Phase",
+      "cite": "user-stated"
+    },
+    {
+      "id": "l_test",
+      "label": "Test Phase",
+      "cite": "user-stated"
+    },
+    {
+      "id": "l_dep",
+      "label": "Deploy Phase",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_jira",
+      "label": "Jira",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_conf",
+      "label": "Confluence",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_vscode",
+      "label": "VS Code",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_git",
+      "label": "GitHub",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_sonar",
+      "label": "SonarQube",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_jenk",
+      "label": "Jenkins CI",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_doc",
+      "label": "Docker Build",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_art",
+      "label": "Artifactory",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_sel",
+      "label": "Selenium",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_k6",
+      "label": "k6 Performance",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_snyk",
+      "label": "Snyk Scan",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_trivy",
+      "label": "Trivy Scan",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_argo",
+      "label": "ArgoCD GitOps",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_k8s",
+      "label": "Kubernetes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_dd",
+      "label": "Datadog",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_pd",
+      "label": "PagerDuty",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_tf",
+      "label": "Terraform",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "t_jira",
+      "target": "t_conf",
+      "label": "References specs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "t_conf",
+      "target": "t_vscode",
+      "label": "Imports task outline",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "t_vscode",
+      "target": "t_git",
+      "label": "Pushes commits",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "t_git",
+      "target": "t_jenk",
+      "label": "Webhook trigger",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "t_jenk",
+      "target": "t_sonar",
+      "label": "Sends static check metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "t_jenk",
+      "target": "t_snyk",
+      "label": "Code scanning dependency checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "t_jenk",
+      "target": "t_doc",
+      "label": "Creates container",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "t_doc",
+      "target": "t_trivy",
+      "label": "Scans image layers",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "t_doc",
+      "target": "t_art",
+      "label": "Pushes container image",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "t_art",
+      "target": "t_argo",
+      "label": "Signals new release package",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "t_argo",
+      "target": "t_k8s",
+      "label": "Applies YAML manifest state",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "t_k8s",
+      "target": "t_sel",
+      "label": "Tests endpoint integration",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "t_k8s",
+      "target": "t_k6",
+      "label": "Loads testing traffic",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "t_k8s",
+      "target": "t_dd",
+      "label": "Exports runtime metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "t_dd",
+      "target": "t_pd",
+      "label": "Triggers incidents",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "t_pd",
+      "target": "t_jira",
+      "label": "Creates ticket automatically",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "t_tf",
+      "target": "t_k8s",
+      "label": "Provisions infrastructure control",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "t_git",
+      "target": "t_tf",
+      "label": "Triggers infrastructure plan",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "t_sonar",
+      "target": "t_git",
+      "label": "Updates PR checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "t_snyk",
+      "target": "t_jira",
+      "label": "Logs vulnerabilites",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "t_trivy",
+      "target": "t_jira",
+      "label": "Logs image vulnerabilities",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "t_dd",
+      "target": "t_jenk",
+      "label": "Sends build duration metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "t_k8s",
+      "target": "t_vscode",
+      "label": "Remote debugging attachment",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "t_tf",
+      "target": "t_art",
+      "label": "Configures storage backends",
+      "cite": "user-stated"
+    }
+  ]
+}

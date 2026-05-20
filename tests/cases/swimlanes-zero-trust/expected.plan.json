@@ -1,0 +1,232 @@
+{
+  "pattern": "swimlanes",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "lane_int",
+      "label": "Internet Zone",
+      "cite": "user-stated"
+    },
+    {
+      "id": "lane_dmz",
+      "label": "DMZ Zone",
+      "cite": "user-stated"
+    },
+    {
+      "id": "lane_internal",
+      "label": "Internal Network",
+      "cite": "user-stated"
+    },
+    {
+      "id": "lane_dc",
+      "label": "Data Center Zone",
+      "cite": "user-stated"
+    },
+    {
+      "id": "user_ext",
+      "label": "External User",
+      "cite": "user-stated"
+    },
+    {
+      "id": "bot_ext",
+      "label": "Bot Scanner",
+      "cite": "user-stated"
+    },
+    {
+      "id": "waf",
+      "label": "WAF Engine",
+      "cite": "user-stated"
+    },
+    {
+      "id": "alb",
+      "label": "Load Balancer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "apigw",
+      "label": "API Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "auth_svc",
+      "label": "Auth Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "web_app",
+      "label": "Web Server",
+      "cite": "user-stated"
+    },
+    {
+      "id": "db_clust",
+      "label": "Database Cluster",
+      "cite": "user-stated"
+    },
+    {
+      "id": "redis_cache",
+      "label": "Cache Layer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vault",
+      "label": "Secrets Vault",
+      "cite": "user-stated"
+    },
+    {
+      "id": "config_srv",
+      "label": "Config Server",
+      "cite": "user-stated"
+    },
+    {
+      "id": "k8s_mesh",
+      "label": "Istio Service Mesh",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "user_ext",
+      "target": "waf",
+      "label": "HTTPS Request",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "bot_ext",
+      "target": "waf",
+      "label": "Malicious Request",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "waf",
+      "target": "alb",
+      "label": "Forwards allowed",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "alb",
+      "target": "apigw",
+      "label": "Routes API call",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "apigw",
+      "target": "auth_svc",
+      "label": "Authenticates token",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "apigw",
+      "target": "web_app",
+      "label": "Proxy request",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "web_app",
+      "target": "k8s_mesh",
+      "label": "Launches service request",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "k8s_mesh",
+      "target": "redis_cache",
+      "label": "Reads/writes cache",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "k8s_mesh",
+      "target": "db_clust",
+      "label": "SQL query",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "k8s_mesh",
+      "target": "vault",
+      "label": "Fetches token credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "k8s_mesh",
+      "target": "config_srv",
+      "label": "Requests properties",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "config_srv",
+      "target": "vault",
+      "label": "Decrypts config variables",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "auth_svc",
+      "target": "redis_cache",
+      "label": "Stores user session",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "auth_svc",
+      "target": "vault",
+      "label": "Gets RSA keys",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "alb",
+      "target": "web_app",
+      "label": "Direct path",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "waf",
+      "target": "user_ext",
+      "label": "Blocks bad payload",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "apigw",
+      "target": "redis_cache",
+      "label": "Rate limits count",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "web_app",
+      "target": "db_clust",
+      "label": "Saves transactions",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "db_clust",
+      "target": "redis_cache",
+      "label": "Invalidates",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "config_srv",
+      "target": "db_clust",
+      "label": "Fetches metadata",
+      "cite": "user-stated"
+    }
+  ]
+}

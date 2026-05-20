@@ -1,0 +1,244 @@
+{
+  "pattern": "scope-columns",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "col_int",
+      "label": "Internal Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "col_ext",
+      "label": "External Integrations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_idp",
+      "label": "Identity Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_store",
+      "label": "User Store",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_policy",
+      "label": "Policy Engine",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_consent",
+      "label": "Consent Manager",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_session",
+      "label": "Session Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_audit",
+      "label": "Audit Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_admin",
+      "label": "Admin Portal",
+      "cite": "user-stated"
+    },
+    {
+      "id": "int_analytics",
+      "label": "Analytics Dashboard",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_okta",
+      "label": "Okta Workforce",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_auth0",
+      "label": "Auth0 CIAM",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_twilio",
+      "label": "Twilio Verify",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_sendgrid",
+      "label": "SendGrid",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_stripe",
+      "label": "Stripe Identity",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_experian",
+      "label": "Experian KYC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_hubspot",
+      "label": "HubSpot CRM",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "int_idp",
+      "target": "int_store",
+      "label": "Reads user accounts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "int_idp",
+      "target": "int_policy",
+      "label": "Checks runtime constraints",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "int_idp",
+      "target": "int_consent",
+      "label": "Verifies compliance approvals",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "int_idp",
+      "target": "int_session",
+      "label": "Registers session validation",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "int_idp",
+      "target": "int_audit",
+      "label": "Logs lifecycle security events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "int_admin",
+      "target": "int_idp",
+      "label": "Manages credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "int_admin",
+      "target": "int_store",
+      "label": "CRUD users",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "int_idp",
+      "target": "ext_okta",
+      "label": "Federates employee login auth",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "int_idp",
+      "target": "ext_auth0",
+      "label": "Syncs tenant logins",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "int_idp",
+      "target": "ext_twilio",
+      "label": "Triggers multi-factor SMS auth",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "int_idp",
+      "target": "ext_sendgrid",
+      "label": "Sends validation emails",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "int_idp",
+      "target": "ext_stripe",
+      "label": "Verifies payment accounts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "int_idp",
+      "target": "ext_experian",
+      "label": "Verifies identity history details",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "int_store",
+      "target": "ext_hubspot",
+      "label": "Syncs lead information fields",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "int_analytics",
+      "target": "int_audit",
+      "label": "Analyzes event trace paths",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "int_analytics",
+      "target": "ext_hubspot",
+      "label": "Syncs campaign metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "ext_okta",
+      "target": "int_session",
+      "label": "Verifies global session logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "ext_auth0",
+      "target": "int_session",
+      "label": "Verifies app session logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "ext_stripe",
+      "target": "int_audit",
+      "label": "Logs transaction check event",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "ext_experian",
+      "target": "int_audit",
+      "label": "Logs verification passes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "int_consent",
+      "target": "ext_hubspot",
+      "label": "Enforces opt-out states",
+      "cite": "user-stated"
+    }
+  ]
+}

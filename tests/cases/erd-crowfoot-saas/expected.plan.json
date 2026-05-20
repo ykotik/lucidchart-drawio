@@ -1,0 +1,245 @@
+{
+  "pattern": "erd-crowfoot",
+  "canvas": {
+    "w": 1600,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "ent_org",
+      "label": "Organization",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_ws",
+      "label": "Workspace",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_proj",
+      "label": "Project",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_mem",
+      "label": "Member",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_task",
+      "label": "Task",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_doc",
+      "label": "Document",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_tag",
+      "label": "Tag",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_cmt",
+      "label": "Comment",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_usr",
+      "label": "User",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_bill",
+      "label": "BillingAccount",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_sub",
+      "label": "Subscription",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_inv",
+      "label": "Invoice",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ent_audit",
+      "label": "AuditLog",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "ent_org",
+      "target": "ent_ws",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "ent_ws",
+      "target": "ent_proj",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "ent_ws",
+      "target": "ent_mem",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "ent_proj",
+      "target": "ent_task",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "ent_proj",
+      "target": "ent_doc",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "ent_task",
+      "target": "ent_cmt",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "ent_task",
+      "target": "ent_tag",
+      "label": "many to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "ent_usr",
+      "target": "ent_mem",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "ent_org",
+      "target": "ent_bill",
+      "label": "1 to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "ent_bill",
+      "target": "ent_sub",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "ent_sub",
+      "target": "ent_inv",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "ent_org",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "ent_usr",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "ent_mem",
+      "target": "ent_task",
+      "label": "1 to many assigned",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "ent_mem",
+      "target": "ent_doc",
+      "label": "1 to many created",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "ent_mem",
+      "target": "ent_cmt",
+      "label": "1 to many authored",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "ent_ws",
+      "target": "ent_tag",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "ent_usr",
+      "target": "ent_bill",
+      "label": "1 to many managed",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "ent_sub",
+      "target": "ent_org",
+      "label": "many to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "ent_inv",
+      "target": "ent_org",
+      "label": "many to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "ent_ws",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "ent_task",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "ent_doc",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "ent_proj",
+      "target": "ent_audit",
+      "label": "1 to many",
+      "cite": "user-stated"
+    }
+  ]
+}
