@@ -126,7 +126,8 @@ def style_kv(cell):
 
 
 # ----------------------------------------------------------- main checks
-def validate_model(model, diag):
+def validate_model(model, diag, features=None):
+    features = features or {}
     cells = list(iter_cells(model))
     if not cells:
         return
@@ -305,6 +306,345 @@ def validate_model(model, diag):
             if not children:
                 diag.info("I203", f"Container '{cid}' is empty")
 
+    # F2 quality gate — runs only if feature flag is on
+    quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, features)
+
+    # F4 DiagramEval — runs only if feature flag is on AND a ground-truth plan was provided
+    gt_plan = features.get("_gt_plan")
+    diagram_eval(by_id, is_vertex, is_edge, parents, gt_plan, diag, features)
+
+
+# ============================================================ F2: quality gate
+# Feature flag: quality_gate. Disable with --features quality_gate=off
+#
+# Metrics (classical layout-aesthetics literature, see compass_research2.md):
+#   Q401 edge crossings           — # of intersecting straight-line edge segments
+#   Q402 orthogonality conformance — % of edges using edgeStyle=orthogonalEdgeStyle
+#   Q403 edge length variance      — coefficient of variation (CV) of edge lengths
+#   Q404 area utilization          — bounding-box of nodes / canvas area
+#
+# Each metric emits a warning above a threshold; raw value always printed as INFO.
+
+
+def _resolve_canvas_xy(cid, geoms, parents, by_id):
+    """Walk parent chain summing offsets to get canvas-absolute (x,y) of a cell."""
+    if cid not in geoms or geoms[cid] is None:
+        return None
+    x, y, w, h = geoms[cid]
+    p = parents.get(cid)
+    while p and p in by_id and p not in ("0", "1"):
+        pg = geoms.get(p)
+        if pg is None:
+            break
+        px, py, _, _ = pg
+        # Account for swimlane startSize offset on the parent's content origin
+        ps = (by_id[p].get("style", "") or "")
+        if "swimlane" in ps:
+            # Parse startSize if present (default 20)
+            ss = 20
+            for kv in ps.split(";"):
+                if kv.startswith("startSize="):
+                    try:
+                        ss = float(kv.split("=", 1)[1])
+                    except ValueError:
+                        pass
+                    break
+            # Horizontal default true; vertical strip if horizontal=0
+            horizontal = True
+            for kv in ps.split(";"):
+                if kv.startswith("horizontal="):
+                    horizontal = (kv.split("=", 1)[1] != "0")
+                    break
+            if horizontal:
+                py += ss
+            else:
+                px += ss
+        x += px
+        y += py
+        p = parents.get(p)
+    return (x, y, w, h)
+
+
+def _segments_intersect(a1, a2, b1, b2):
+    """Return True if segments a1-a2 and b1-b2 properly cross (not touching at endpoints)."""
+    def ccw(p, q, r):
+        return (r[1] - p[1]) * (q[0] - p[0]) - (q[1] - p[1]) * (r[0] - p[0])
+
+    # Reject if endpoints coincide (these are not "crossings" — they share a vertex)
+    if a1 == b1 or a1 == b2 or a2 == b1 or a2 == b2:
+        return False
+    d1 = ccw(b1, b2, a1)
+    d2 = ccw(b1, b2, a2)
+    d3 = ccw(a1, a2, b1)
+    d4 = ccw(a1, a2, b2)
+    return ((d1 > 0) != (d2 > 0)) and ((d3 > 0) != (d4 > 0))
+
+
+def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, features):
+    if features.get("quality_gate", "on") != "on":
+        return
+
+    # Build canvas-absolute centers for each vertex
+    centers = {}
+    for cid in by_id:
+        if not is_vertex[cid]:
+            continue
+        ab = _resolve_canvas_xy(cid, geoms, parents, by_id)
+        if ab is None:
+            continue
+        x, y, w, h = ab
+        centers[cid] = (x + w / 2.0, y + h / 2.0)
+
+    # ---------- Q401 edge crossings (straight-line proxy) ----------
+    edge_segments = []
+    for cid, c in by_id.items():
+        if not is_edge[cid]:
+            continue
+        src = c.get("source")
+        tgt = c.get("target")
+        if src in centers and tgt in centers:
+            edge_segments.append((cid, centers[src], centers[tgt]))
+    n_cross = 0
+    for i in range(len(edge_segments)):
+        for j in range(i + 1, len(edge_segments)):
+            _, a1, a2 = edge_segments[i]
+            _, b1, b2 = edge_segments[j]
+            if _segments_intersect(a1, a2, b1, b2):
+                n_cross += 1
+    diag.info("Q401", f"Edge crossings (straight-line proxy): {n_cross}")
+    if len(edge_segments) >= 6 and n_cross > max(2, len(edge_segments) // 4):
+        diag.warn(
+            "Q401",
+            f"High edge-crossing count: {n_cross} crossings over {len(edge_segments)} edges "
+            f"(threshold = max(2, edges/4) = {max(2, len(edge_segments) // 4)}) — consider auto_layout"
+        )
+
+    # ---------- Q402 orthogonality conformance ----------
+    n_edges = sum(1 for cid in by_id if is_edge[cid])
+    n_ortho = sum(
+        1
+        for cid in by_id
+        if is_edge[cid]
+        and "orthogonalEdgeStyle" in (styles[cid].get("edgeStyle", "") or "")
+    )
+    if n_edges > 0:
+        pct = (n_ortho / n_edges) * 100.0
+        diag.info("Q402", f"Orthogonality conformance: {n_ortho}/{n_edges} = {pct:.0f}%")
+        if pct < 80.0 and n_edges >= 4:
+            diag.warn(
+                "Q402",
+                f"Low orthogonality ({pct:.0f}%) — architecture diagrams read cleanest at >=80% "
+                f"orthogonal. Add edgeStyle=orthogonalEdgeStyle to remaining edges."
+            )
+
+    # ---------- Q403 edge-length variance (coefficient of variation) ----------
+    lengths = []
+    for cid, a, b in edge_segments:
+        dx = a[0] - b[0]
+        dy = a[1] - b[1]
+        lengths.append((dx * dx + dy * dy) ** 0.5)
+    if len(lengths) >= 3:
+        mean = sum(lengths) / len(lengths)
+        var = sum((L - mean) ** 2 for L in lengths) / len(lengths)
+        std = var ** 0.5
+        cv = (std / mean) if mean > 1e-6 else 0.0
+        diag.info("Q403", f"Edge-length CV: {cv:.2f} (mean={mean:.0f}px, std={std:.0f}px)")
+        if cv > 1.2:
+            diag.warn(
+                "Q403",
+                f"High edge-length variance (CV={cv:.2f}). One or two edges dominate — "
+                f"consider re-grouping shapes or running auto_layout=elk."
+            )
+
+    # ---------- Q404 area utilization ----------
+    if centers:
+        all_geoms = [_resolve_canvas_xy(cid, geoms, parents, by_id) for cid in centers]
+        all_geoms = [g for g in all_geoms if g is not None]
+        if all_geoms:
+            min_x = min(g[0] for g in all_geoms)
+            min_y = min(g[1] for g in all_geoms)
+            max_x = max(g[0] + g[2] for g in all_geoms)
+            max_y = max(g[1] + g[3] for g in all_geoms)
+            bbox_w = max(1.0, max_x - min_x)
+            bbox_h = max(1.0, max_y - min_y)
+            bbox_area = bbox_w * bbox_h
+            node_area = sum(g[2] * g[3] for g in all_geoms)
+            util = node_area / bbox_area
+            diag.info("Q404", f"Area utilization: {util * 100:.1f}% (nodes/bbox)")
+            if util < 0.10 and len(all_geoms) >= 6:
+                diag.warn(
+                    "Q404",
+                    f"Low area utilization ({util * 100:.1f}%) — shapes are spread thin. "
+                    f"Tighten spacing or scale canvas down."
+                )
+            if util > 0.65:
+                diag.warn(
+                    "Q404",
+                    f"High area utilization ({util * 100:.1f}%) — diagram is crowded. "
+                    f"Add gutter or scale canvas up."
+                )
+
+
+# ============================================================ F4: DiagramEval F1
+# Feature flag: diagram_eval. Off by default.
+#
+# DiagramEval (arxiv 2510.25761, EMNLP 2025): treat diagram as graph
+#   nodes = text labels
+#   edges = directed (source_label, target_label) pairs
+# Compute Node Precision/Recall/F1 and Path Precision/Recall/F1 vs ground-truth plan.
+
+
+def _norm_label(s):
+    """Extract the primary label from an mxCell value, normalized for comparison.
+
+    Strategy:
+      1. If the value has <b>...</b>, use the bold portion (the C4 / standard naming convention)
+      2. Else, take content up to the first <br/> (multi-line cells)
+      3. Strip remaining HTML tags + entities
+      4. Lowercase + collapse whitespace
+    """
+    import re
+    if not s:
+        return ""
+    # Decode &amp;, &lt;, &gt;, &quot;, &#xa; etc — minimal
+    s = s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"')
+    # 1. Bold portion wins
+    m = re.search(r"<b>(.*?)</b>", s, re.IGNORECASE | re.DOTALL)
+    if m:
+        primary = m.group(1)
+    else:
+        # 2. Up to first <br/> or newline
+        primary = re.split(r"<br\s*/?>|\n", s, maxsplit=1, flags=re.IGNORECASE)[0]
+    # 3. Strip remaining HTML + entities
+    primary = re.sub(r"<[^>]+>", " ", primary)
+    primary = re.sub(r"&[a-z]+;|&#x?[0-9a-f]+;", " ", primary, flags=re.IGNORECASE)
+    # 4. Normalize
+    return re.sub(r"\s+", " ", primary).strip().lower()
+
+
+def diagram_eval(by_id, is_vertex, is_edge, parents, gt_plan, diag, features):
+    if features.get("diagram_eval", "off") != "on":
+        return
+    if not gt_plan:
+        diag.warn("D600", "diagram_eval=on but no ground-truth plan provided (--plan)")
+        return
+
+    # ---- Generated graph (from .drawio) ----
+    # Skip decorative cells (style starts with "text;" — titles, legend labels) and
+    # cells with no parent / sentinel root cells.
+    gen_labels = {}      # id -> normalized label
+    for cid, c in by_id.items():
+        if not is_vertex.get(cid):
+            continue
+        style = (c.get("style", "") or "").strip()
+        if style.startswith("text;"):
+            continue  # decorative text — not a real node
+        lbl = _norm_label(c.get("value", ""))
+        if lbl:
+            gen_labels[cid] = lbl
+    gen_nodes = set(gen_labels.values())
+
+    gen_edges = set()
+    for cid, c in by_id.items():
+        if is_edge.get(cid):
+            s = c.get("source")
+            t = c.get("target")
+            if s in gen_labels and t in gen_labels:
+                gen_edges.add((gen_labels[s], gen_labels[t]))
+
+    # ---- Ground-truth graph (from plan JSON) ----
+    gt_label_by_id = {}
+    for kind in ("containers", "shapes"):
+        for el in gt_plan.get(kind, []) or []:
+            lbl = _norm_label(el.get("label", ""))
+            if lbl:
+                gt_label_by_id[el.get("id")] = lbl
+    gt_nodes = set(gt_label_by_id.values())
+
+    gt_edges = set()
+    for el in gt_plan.get("edges", []) or []:
+        s = el.get("source")
+        t = el.get("target")
+        if s in gt_label_by_id and t in gt_label_by_id:
+            gt_edges.add((gt_label_by_id[s], gt_label_by_id[t]))
+
+    # ---- F1 helpers ----
+    def prf(pred, true):
+        tp = len(pred & true)
+        p = tp / len(pred) if pred else 0.0
+        r = tp / len(true) if true else 0.0
+        f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+        return p, r, f1
+
+    n_p, n_r, n_f1 = prf(gen_nodes, gt_nodes)
+    e_p, e_r, e_f1 = prf(gen_edges, gt_edges)
+
+    diag.info("D601", f"DiagramEval Node:  P={n_p:.3f} R={n_r:.3f} F1={n_f1:.3f} (|gen|={len(gen_nodes)} |gt|={len(gt_nodes)})")
+    diag.info("D602", f"DiagramEval Path:  P={e_p:.3f} R={e_r:.3f} F1={e_f1:.3f} (|gen|={len(gen_edges)} |gt|={len(gt_edges)})")
+
+    # Specific misses
+    missing_nodes = gt_nodes - gen_nodes
+    extra_nodes = gen_nodes - gt_nodes
+    missing_edges = gt_edges - gen_edges
+    extra_edges = gen_edges - gt_edges
+    if missing_nodes:
+        diag.warn("D603", f"DiagramEval: {len(missing_nodes)} nodes in plan missing from diagram: {sorted(missing_nodes)[:5]}")
+    if extra_nodes:
+        diag.warn("D604", f"DiagramEval: {len(extra_nodes)} nodes in diagram not in plan: {sorted(extra_nodes)[:5]}")
+    if missing_edges:
+        diag.warn("D605", f"DiagramEval: {len(missing_edges)} edges in plan missing from diagram")
+    if extra_edges:
+        diag.warn("D606", f"DiagramEval: {len(extra_edges)} edges in diagram not in plan")
+
+    # Thresholds (baseline from EMNLP paper: Claude 3.7 Sonnet scored Node-F1 0.35 / Path-F1 0.24
+    # on research-paper diagrams. Architecture diagrams are simpler — expect >=0.70 on a faithful
+    # generation. Anything <0.50 is a real regression.)
+    if n_f1 < 0.70 and gt_nodes:
+        diag.warn("D607", f"Node F1 {n_f1:.3f} below 0.70 threshold — diagram diverges from plan")
+    if e_f1 < 0.60 and gt_edges:
+        diag.warn("D608", f"Path F1 {e_f1:.3f} below 0.60 threshold — edge connectivity diverges from plan")
+
+
+# ============================================================ F3: grounding
+# Feature flag: grounding_manifest. Disable with --features grounding_manifest=off
+#
+# Reads an optional plan JSON (alongside the .drawio or via --plan PATH) and
+# requires every container / shape / edge to have a non-empty 'cite' field.
+#
+#   G501 ERROR — element has no cite (or empty / whitespace)
+#   G502 WARN  — element's cite starts with 'assumption:' (review before delivery)
+#   G503 INFO  — coverage summary
+
+
+def grounding_check(plan, diag, features):
+    if features.get("grounding_manifest", "on") != "on":
+        return
+    if not plan:
+        return
+
+    n_cited = 0
+    n_assumptions = 0
+    n_missing = 0
+    for kind in ("containers", "shapes", "edges"):
+        for el in plan.get(kind, []) or []:
+            eid = el.get("id", "<no-id>")
+            cite = (el.get("cite") or "").strip()
+            if not cite:
+                diag.err("G501", f"{kind[:-1]} '{eid}' has no 'cite' field (grounding required)")
+                n_missing += 1
+                continue
+            n_cited += 1
+            if cite.startswith("assumption:"):
+                diag.warn("G502", f"{kind[:-1]} '{eid}' is an assumption: {cite[11:].strip()}")
+                n_assumptions += 1
+
+    total = n_cited + n_missing
+    if total:
+        diag.info(
+            "G503",
+            f"Grounding: {n_cited}/{total} cited, {n_assumptions} assumptions, {n_missing} missing"
+        )
+
 
 # ------------------------------------------------------------------ comment scan
 def scan_comments(path, diag):
@@ -326,18 +666,72 @@ def scan_comments(path, diag):
         diag.warn("E006", "XML comment found inside <mxGraphModel> — remove for Lucidchart compatibility")
 
 
+DEFAULT_FEATURES = {
+    "quality_gate": "on",
+    "grounding_manifest": "on",
+    "diagram_eval": "off",
+}
+
+
+def parse_features(spec, defaults=None):
+    """Parse 'k1=v1,k2=v2' into dict, merged over defaults."""
+    out = dict(defaults or DEFAULT_FEATURES)
+    if not spec:
+        return out
+    for part in spec.split(","):
+        if "=" not in part:
+            continue
+        k, v = part.split("=", 1)
+        out[k.strip()] = v.strip()
+    return out
+
+
+def _auto_plan_path(drawio_path):
+    """If <name>.drawio has a sibling <name>.plan.json, return it."""
+    import os
+    base, ext = os.path.splitext(drawio_path)
+    candidate = base + ".plan.json"
+    return candidate if os.path.isfile(candidate) else None
+
+
 def main():
     ap = argparse.ArgumentParser(description="Validate a lucidchart-drawio .drawio file")
     ap.add_argument("file", help="Path to .drawio XML file")
     ap.add_argument("--mode", choices=["strict", "standard", "loose"], default="standard")
+    ap.add_argument(
+        "--features",
+        default="",
+        help="Comma-separated feature overrides, e.g. 'quality_gate=off,diagram_eval=on'",
+    )
+    ap.add_argument(
+        "--plan",
+        default=None,
+        help="Path to JSON plan for F3 grounding checks (default: auto-detect <file>.plan.json)",
+    )
     args = ap.parse_args()
+
+    features = parse_features(args.features)
+
+    # Load plan once if available (used by F3 grounding AND F4 diagram_eval)
+    plan_path = args.plan or _auto_plan_path(args.file)
+    plan = None
+    if plan_path:
+        import json
+        try:
+            with open(plan_path) as f:
+                plan = json.load(f)
+        except (OSError, json.JSONDecodeError) as e:
+            print(f"WARN  G500: Could not read plan {plan_path}: {e}")
+    features["_gt_plan"] = plan  # threaded into validate_model -> diagram_eval
 
     root = load(args.file)
     diag = Diag()
     scan_comments(args.file, diag)
 
     for model in all_models(root):
-        validate_model(model, diag)
+        validate_model(model, diag, features)
+
+    grounding_check(plan, diag, features)
 
     sys.exit(diag.print(args.mode))
 
