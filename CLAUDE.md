@@ -108,8 +108,6 @@ Children inside a container use coordinates **relative to the container's top-le
 | `auto_layout` | `auto` | ELK when >20 vertices |
 | `text_metrics` | `auto` | measure labels, warn on overflow |
 | `font_fit` | `auto` | shrink fontSize on overflow |
-| `diagram_eval` | `off` | Node-F1 / Path-F1 vs ground-truth plan |
-| `eval_harness` | `off` | runs eval/ regression suite |
 
 Override per-diagram: add `<!-- lucid:feature=value -->` as first line of the source plan.
 

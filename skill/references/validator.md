@@ -79,30 +79,6 @@ Requires a JSON plan alongside the .drawio (`<name>.plan.json`, auto-detected) o
 
 See `plan-format.md` "F3: Grounding manifest" for `cite` value formats.
 
-### DiagramEval F1 (F4 — `diagram_eval` feature flag, **off by default**)
-
-DiagramEval (arxiv 2510.25761, EMNLP 2025). Treats the diagram as a graph: each shape's primary label is a node; each edge's `(source_label, target_label)` is a path. Computes Precision / Recall / F1 vs the ground-truth plan.
-
-| Code | Severity | Message |
-|---|---|---|
-| `D600` | WARN | `diagram_eval=on` but no plan provided |
-| `D601` | INFO | Node Precision / Recall / F1 + counts |
-| `D602` | INFO | Path Precision / Recall / F1 + counts |
-| `D603` | WARN | N nodes in plan missing from diagram (sample shown) |
-| `D604` | WARN | N nodes in diagram not in plan (sample shown) |
-| `D605` | WARN | N edges in plan missing from diagram |
-| `D606` | WARN | N edges in diagram not in plan |
-| `D607` | WARN | Node F1 below 0.70 — diagram diverges from plan |
-| `D608` | WARN | Path F1 below 0.60 — edge connectivity diverges from plan |
-
-**Label normalization:** uses `<b>...</b>` content if present, else text up to first `<br/>`, then lowercased/whitespace-normalized. **Decorative cells** with `style="text;..."` (titles, legend labels) are skipped from the node set.
-
-**Thresholds:** Node F1 ≥ 0.70, Path F1 ≥ 0.60 for architecture diagrams. The EMNLP paper's baseline on research-paper figures was Claude 3.7 Sonnet Node-F1 0.35 / Path-F1 0.24; architecture diagrams are simpler, so anything <0.50 is a real regression.
-
-Enable per-run: `--features diagram_eval=on` (and provide `--plan path.json` if not auto-detected).
-
----
-
 ## How the overlap detection works
 
 The validator builds an axis-aligned bounding box (AABB) for each shape in canvas

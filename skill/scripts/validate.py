@@ -309,10 +309,6 @@ def validate_model(model, diag, features=None):
     # F2 quality gate — runs only if feature flag is on
     quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, features)
 
-    # F4 DiagramEval — runs only if feature flag is on AND a ground-truth plan was provided
-    gt_plan = features.get("_gt_plan")
-    diagram_eval(by_id, is_vertex, is_edge, parents, gt_plan, diag, features)
-
 
 # ============================================================ F2: quality gate
 # Feature flag: quality_gate. Disable with --features quality_gate=off
@@ -546,126 +542,6 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
         diag.info("Q405", f"Text overflow: {n_overflow} cell(s) at current fontSize")
 
 
-# ============================================================ F4: DiagramEval F1
-# Feature flag: diagram_eval. Off by default.
-#
-# DiagramEval (arxiv 2510.25761, EMNLP 2025): treat diagram as graph
-#   nodes = text labels
-#   edges = directed (source_label, target_label) pairs
-# Compute Node Precision/Recall/F1 and Path Precision/Recall/F1 vs ground-truth plan.
-
-
-def _norm_label(s):
-    """Extract the primary label from an mxCell value, normalized for comparison.
-
-    Strategy:
-      1. If the value has <b>...</b>, use the bold portion (the C4 / standard naming convention)
-      2. Else, take content up to the first <br/> (multi-line cells)
-      3. Strip remaining HTML tags + entities
-      4. Lowercase + collapse whitespace
-    """
-    import re
-    if not s:
-        return ""
-    # Decode &amp;, &lt;, &gt;, &quot;, &#xa; etc — minimal
-    s = s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"')
-    # 1. Bold portion wins
-    m = re.search(r"<b>(.*?)</b>", s, re.IGNORECASE | re.DOTALL)
-    if m:
-        primary = m.group(1)
-    else:
-        # 2. Up to first <br/> or newline
-        primary = re.split(r"<br\s*/?>|\n", s, maxsplit=1, flags=re.IGNORECASE)[0]
-    # 3. Strip remaining HTML + entities
-    primary = re.sub(r"<[^>]+>", " ", primary)
-    primary = re.sub(r"&[a-z]+;|&#x?[0-9a-f]+;", " ", primary, flags=re.IGNORECASE)
-    # 4. Normalize
-    return re.sub(r"\s+", " ", primary).strip().lower()
-
-
-def diagram_eval(by_id, is_vertex, is_edge, parents, gt_plan, diag, features):
-    if features.get("diagram_eval", "off") != "on":
-        return
-    if not gt_plan:
-        diag.warn("D600", "diagram_eval=on but no ground-truth plan provided (--plan)")
-        return
-
-    # ---- Generated graph (from .drawio) ----
-    # Skip decorative cells (style starts with "text;" — titles, legend labels) and
-    # cells with no parent / sentinel root cells.
-    gen_labels = {}      # id -> normalized label
-    for cid, c in by_id.items():
-        if not is_vertex.get(cid):
-            continue
-        style = (c.get("style", "") or "").strip()
-        if style.startswith("text;"):
-            continue  # decorative text — not a real node
-        lbl = _norm_label(c.get("value", ""))
-        if lbl:
-            gen_labels[cid] = lbl
-    gen_nodes = set(gen_labels.values())
-
-    gen_edges = set()
-    for cid, c in by_id.items():
-        if is_edge.get(cid):
-            s = c.get("source")
-            t = c.get("target")
-            if s in gen_labels and t in gen_labels:
-                gen_edges.add((gen_labels[s], gen_labels[t]))
-
-    # ---- Ground-truth graph (from plan JSON) ----
-    gt_label_by_id = {}
-    for kind in ("containers", "shapes"):
-        for el in gt_plan.get(kind, []) or []:
-            lbl = _norm_label(el.get("label", ""))
-            if lbl:
-                gt_label_by_id[el.get("id")] = lbl
-    gt_nodes = set(gt_label_by_id.values())
-
-    gt_edges = set()
-    for el in gt_plan.get("edges", []) or []:
-        s = el.get("source")
-        t = el.get("target")
-        if s in gt_label_by_id and t in gt_label_by_id:
-            gt_edges.add((gt_label_by_id[s], gt_label_by_id[t]))
-
-    # ---- F1 helpers ----
-    def prf(pred, true):
-        tp = len(pred & true)
-        p = tp / len(pred) if pred else 0.0
-        r = tp / len(true) if true else 0.0
-        f1 = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
-        return p, r, f1
-
-    n_p, n_r, n_f1 = prf(gen_nodes, gt_nodes)
-    e_p, e_r, e_f1 = prf(gen_edges, gt_edges)
-
-    diag.info("D601", f"DiagramEval Node:  P={n_p:.3f} R={n_r:.3f} F1={n_f1:.3f} (|gen|={len(gen_nodes)} |gt|={len(gt_nodes)})")
-    diag.info("D602", f"DiagramEval Path:  P={e_p:.3f} R={e_r:.3f} F1={e_f1:.3f} (|gen|={len(gen_edges)} |gt|={len(gt_edges)})")
-
-    # Specific misses
-    missing_nodes = gt_nodes - gen_nodes
-    extra_nodes = gen_nodes - gt_nodes
-    missing_edges = gt_edges - gen_edges
-    extra_edges = gen_edges - gt_edges
-    if missing_nodes:
-        diag.warn("D603", f"DiagramEval: {len(missing_nodes)} nodes in plan missing from diagram: {sorted(missing_nodes)[:5]}")
-    if extra_nodes:
-        diag.warn("D604", f"DiagramEval: {len(extra_nodes)} nodes in diagram not in plan: {sorted(extra_nodes)[:5]}")
-    if missing_edges:
-        diag.warn("D605", f"DiagramEval: {len(missing_edges)} edges in plan missing from diagram")
-    if extra_edges:
-        diag.warn("D606", f"DiagramEval: {len(extra_edges)} edges in diagram not in plan")
-
-    # Thresholds (baseline from EMNLP paper: Claude 3.7 Sonnet scored Node-F1 0.35 / Path-F1 0.24
-    # on research-paper diagrams. Architecture diagrams are simpler — expect >=0.70 on a faithful
-    # generation. Anything <0.50 is a real regression.)
-    if n_f1 < 0.70 and gt_nodes:
-        diag.warn("D607", f"Node F1 {n_f1:.3f} below 0.70 threshold — diagram diverges from plan")
-    if e_f1 < 0.60 and gt_edges:
-        diag.warn("D608", f"Path F1 {e_f1:.3f} below 0.60 threshold — edge connectivity diverges from plan")
-
-
 # ============================================================ F3: grounding
 # Feature flag: grounding_manifest. Disable with --features grounding_manifest=off
 #
@@ -818,7 +694,6 @@ def scan_comments(path, diag):
 DEFAULT_FEATURES = {
     "quality_gate": "on",
     "grounding_manifest": "on",
-    "diagram_eval": "off",
     "text_metrics": "auto",
 }
 
@@ -882,7 +757,7 @@ def main():
     ap.add_argument(
         "--features",
         default="",
-        help="Comma-separated feature overrides, e.g. 'quality_gate=off,diagram_eval=on'",
+        help="Comma-separated feature overrides, e.g. 'quality_gate=off,grounding_manifest=off'",
     )
     ap.add_argument(
         "--plan",
@@ -899,7 +774,7 @@ def main():
 
     features = parse_features(args.features)
 
-    # Load plan once if available (used by F3 grounding AND F4 diagram_eval)
+    # Load plan if available (used by F3 grounding)
     plan_path = args.plan or _auto_plan_path(args.file)
     plan = None
     if plan_path:
@@ -909,7 +784,7 @@ def main():
                 plan = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
             print(f"WARN  G500: Could not read plan {plan_path}: {e}")
-    features["_gt_plan"] = plan  # threaded into validate_model -> diagram_eval
+    features["_gt_plan"] = plan
 
     # Load annotated plan for T8 text metrics check
     import json as _json

@@ -177,18 +177,6 @@ Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.
 
 Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
 
-### Eval harness (F7) — `eval_harness`
-
-`eval/` ships with a small regression suite (3 cases — c4-context, pipeline, swimlanes). Run before merges or model upgrades:
-
-```bash
-python3 eval/run.py                       # show metrics table
-python3 eval/run.py --against-baseline    # exit 1 if any case regressed
-python3 eval/run.py --update-baseline     # accept current scores as new baseline
-```
-
-See `eval/README.md` for the full layout and metrics tracked (Node F1, Path F1, edge crossings, orthogonality %, area utilization, grounding coverage).
-
 ## Workflow
 
 1. **Identify layout pattern** → pick from the 12 patterns below (or compose)
