@@ -17,11 +17,9 @@ features:
   output_mode: auto          # bare | wrapped | auto  — bare <mxGraphModel> (drawio FAQ) vs full <mxfile>
   quality_gate: on           # on | off              — edge crossings, orthogonality, length variance
   grounding_manifest: on     # on | off              — every node/edge cites a source
-  diagram_eval: off          # on | off              — Node-F1 / Path-F1 vs ground-truth plan (DiagramEval)
   auto_layout: auto          # off | elk | dot | auto — auto = elk when diagram has >20 vertices
   text_metrics: auto         # off | auto            — auto = measure labels, warn on overflow, apply min dims
   font_fit: auto             # off | auto | grow     — auto = shrink fontSize when text overflows cell
-  eval_harness: off          # on | off              — run eval/ regression suite
 ---
 
 # Lucidchart draw.io Diagram Skill (v2.1)
@@ -35,12 +33,79 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `output_mode` | `bare` / `wrapped` / `auto` | `auto` | Emit bare `<mxGraphModel>` (drawio FAQ) for single-page; full `<mxfile>` wrapper for multi-page. `auto` picks based on `diagrams.length`. |
 | `quality_gate` | `on` / `off` | `on` | Adds edge-crossings, orthogonality conformance, edge-length variance, area utilization checks to validator. |
 | `grounding_manifest` | `on` / `off` | `on` | Every node/edge in the plan must include a non-empty `source` field. Validator rejects orphans. |
-| `diagram_eval` | `on` / `off` | `off` | Computes Node-F1 / Path-F1 (DiagramEval, EMNLP 2025) when a ground-truth plan is provided. |
 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
 | `text_metrics` | `off` / `auto` | `auto` | Runs `scripts/text-metrics.js` between plan validation and XML emit. Annotates each shape/container with `text_safe.{min_width, min_height, overflow}`. LLM must apply these as geometry lower bounds. Validator emits W106/W107/W108 if emitted XML is smaller than safe dims. Zero native deps (char-table measurement). See `references/text-metrics.md`. |
 | `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell. `auto` shrinks only; `grow` also enlarges when boxes have headroom (useful after `auto_layout`). Skips edge labels and `style=text;` chrome. See `references/font-fit.md`. |
-| `eval_harness` | `on` / `off` | `off` | Runs `eval/` regression suite against fixed reference diagrams. |
 
+
+## Generation profiles
+
+Use the profile that matches the situation. Override any flag per-diagram with `<!-- lucid:feature=value -->` on the first line of the source plan.
+
+### Production (default)
+
+All features on. Use for client deliverables, team documentation, regulated diagrams.
+
+```yaml
+output_mode: auto
+quality_gate: on
+grounding_manifest: on
+auto_layout: auto
+text_metrics: auto
+font_fit: auto
+```
+
+~93K tokens · ~80–180 s end-to-end for a 50–60 element diagram.
+
+### Fast draft
+
+For exploration and rough ideation. Skips grounding, text measurement, layout engine, and quality metrics. Produces structurally valid XML (correct parent IDs, container-relative coords, edge geometry) but without cite traceability, label-fit guarantees, or auto-layout.
+
+**Switch back to production before any delivery.**
+
+```yaml
+output_mode: auto
+quality_gate: off
+grounding_manifest: off
+auto_layout: off
+text_metrics: off
+font_fit: off
+```
+
+~58K tokens · ~50–110 s (~37% faster than production).
+
+**Fast draft workflow — condensed steps:**
+
+```
+Step 1. READ 4 references (skip layout-engines.md, gestalt-rules.md)
+         container-coords.md · edge-routing.md · plan-format.md · style-dictionary.md
+Step 2. PLAN — JSON plan, no cite fields required
+Step 3. EMIT XML — bare <mxGraphModel>, apply container-relative coords, two-layer edges
+Step 4. SELF-CHECK (structural only):
+         ✅ every edge has <mxGeometry relative="1">
+         ✅ all IDs unique
+         ✅ every parent= exists
+         ✅ children use container-relative coordinates
+         ✅ cross-container edges have parent = LCA
+         ✅ no XML comments inside model
+         ✅ HTML in value is escaped
+         ✅ startSize on all swimlane containers
+         ✅ edges in layer before icon layer
+         ⚠️ style allowlist — best-effort only
+         ❌ font sizes / label fit — skipped (no text_metrics)
+Step 5. WRITE file
+Step 6. VALIDATE structural errors only (E0xx) — no Q/G metrics
+```
+
+### Dense diagram (> 50 elements)
+
+Force ELK regardless of vertex count; grow fonts after ELK expands shapes.
+
+```
+<!-- lucid:auto_layout=elk lucid:font_fit=grow -->
+```
+
+---
 
 ## Output requirement
 
