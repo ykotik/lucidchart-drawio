@@ -394,6 +394,25 @@ def apply_layout(drawio_root, laid_graph, by_id, parents):
     for n in laid_graph.get("children", []):
         walk(n)
 
+    # Write edge routing waypoints
+    for edge in laid_graph.get("edges", []):
+        cid = edge.get("id")
+        if cid in by_id:
+            cell = by_id[cid]
+            g = cell.find("mxGeometry")
+            if g is not None:
+                sections = edge.get("sections", [])
+                if sections:
+                    bend_points = sections[0].get("bendPoints", [])
+                    if bend_points:
+                        # Find or create <Array as="points">
+                        arr = g.find("Array[@as='points']")
+                        if arr is not None:
+                            g.remove(arr)
+                        arr = ET.SubElement(g, "Array", as_="points")
+                        for bp in bend_points:
+                            ET.SubElement(arr, "mxPoint", x=f"{bp['x']:.0f}", y=f"{bp['y']:.0f}")
+
 
 # ============================================================ main
 
