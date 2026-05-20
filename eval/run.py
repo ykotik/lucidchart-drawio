@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-F7: lucidchart-drawio eval harness.
+F7: drawio-architect eval harness.
 
 Runs the validator against every case in eval/cases/, captures metrics,
 optionally compares against the committed baseline.

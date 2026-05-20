@@ -1,8 +1,12 @@
-# lucidchart-drawio (v2.0)
+# drawio-architect (v2.1)
 
-A Claude skill for generating Lucidchart-importable architecture diagrams as draw.io XML
+A Claude skill for generating clean draw.io architecture diagrams (.drawio / mxGraph XML)
 with strict layout discipline, clean edge routing, vendor icon vocabularies, and pre-flight
-validation.
+validation. Output opens natively in draw.io and imports cleanly into Lucidchart, the
+Confluence drawio plugin, and any mxGraph-aware tool.
+
+> Renamed from `drawio-architect` in v2.1 — the skill never touched Lucidchart APIs;
+> output has always been standard mxGraph XML that all drawio-compatible editors accept.
 
 ## What's new in v2
 
@@ -16,13 +20,13 @@ validation.
 
 ## Install
 
-Drag `lucidchart-drawio.skill` into Claude's plugin panel, or run `/install` in Claude Code.
+Drag `drawio-architect.skill` into Claude's plugin panel, or run `/install` in Claude Code.
 
 To rebuild the `.skill` file from source:
 
 ```bash
 cd /path/to/skill-creator
-python3 -m scripts.package_skill /path/to/lucidchart-drawio ./dist
+python3 -m scripts.package_skill /path/to/drawio-architect ./dist
 ```
 
 ## Contents
