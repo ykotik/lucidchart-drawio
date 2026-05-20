@@ -21,7 +21,6 @@ features:
   auto_layout: auto          # off | elk | dot | auto — auto = elk when diagram has >20 vertices
   text_metrics: auto         # off | auto            — auto = measure labels, warn on overflow, apply min dims
   font_fit: auto             # off | auto | grow     — auto = shrink fontSize when text overflows cell
-  critic_judge_loop: auto    # off | on | auto       — auto = on when shapes > 15 (See it. Say it. Sorted.)
   eval_harness: off          # on | off              — run eval/ regression suite
 ---
 
@@ -40,10 +39,8 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
 | `text_metrics` | `off` / `auto` | `auto` | Runs `scripts/text-metrics.js` between plan validation and XML emit. Annotates each shape/container with `text_safe.{min_width, min_height, overflow}`. LLM must apply these as geometry lower bounds. Validator emits W106/W107/W108 if emitted XML is smaller than safe dims. Zero native deps (char-table measurement). See `references/text-metrics.md`. |
 | `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell. `auto` shrinks only; `grow` also enlarges when boxes have headroom (useful after `auto_layout`). Skips edge labels and `style=text;` chrome. See `references/font-fit.md`. |
-| `critic_judge_loop` | `off` / `on` / `auto` | `auto` | Iterative Critic→Candidates→Judge refinement (`auto` = on when >15 shapes). |
 | `eval_harness` | `on` / `off` | `off` | Runs `eval/` regression suite against fixed reference diagrams. |
 
-To turn everything off (legacy v2.0 behavior): set every flag to `off` except `output_mode: wrapped`.
 
 ## Output requirement
 
@@ -112,15 +109,6 @@ Goal: no hallucinated boxes on client deliverables. Every element on the diagram
 Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.py` auto-detects it (or pass `--plan path/to/plan.json` explicitly).
 
 Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
-
-### Critic-Candidates-Judge loop (F6) — `critic_judge_loop` [DEPRECATED]
-
-*Note: As of v2.1.1, the token-heavy LLM multi-agent loop is deprecated in favor of deterministic constraint-based overlap removal.*
-
-For fixing overlaps and routing in dense diagrams (>15 shapes), you should now use the local overlap removal engine instead of the LLM:
-`python3 scripts/elk-layout.py path/to/diagram.drawio --engine neato`
-
-This uses Graphviz's `neato` algorithm (`-Goverlap=prism`) to mathematically separate overlapping nodes while perfectly preserving your intended structural layout and mental map, without incurring additional LLM token costs.
 
 ### Eval harness (F7) — `eval_harness`
 
