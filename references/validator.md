@@ -62,6 +62,7 @@ Runs only when `features.quality_gate=on` (default). Disable with `--features qu
 | `Q402` | **Orthogonality conformance %** — edges using `edgeStyle=orthogonalEdgeStyle` | `< 80%` when `edges >= 4` |
 | `Q403` | **Edge length CV** — coefficient of variation = std/mean of straight-line edge lengths | `> 1.2` when `edges >= 3` |
 | `Q404` | **Area utilization** — sum of node areas / bounding-box area | `< 10%` (spread thin) or `> 65%` (crowded) when `nodes >= 6` |
+| `Q405` | **Text overflow** — label exceeds cell bounds at current `fontSize` (char-width estimate, matches `scripts/fit-fonts.py`) | Any overflowing cell — suggestion: run `scripts/fit-fonts.py` |
 
 The edge-crossings check resolves container coords by walking parent chains and applying `startSize` offsets for swimlanes, so child shapes inside containers get correct canvas-absolute coordinates before the sweep.
 

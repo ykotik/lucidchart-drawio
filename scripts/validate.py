@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-lucidchart-drawio validator (v2)
+drawio-architect validator (v2)
 
-Pre-flight checks for .drawio files produced by the lucidchart-drawio skill.
+Pre-flight checks for .drawio files produced by the drawio-architect skill.
 
 Usage:
     python3 validate.py path/to/diagram.drawio
@@ -484,6 +484,67 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
                     f"Add gutter or scale canvas up."
                 )
 
+    # ---------- Q405 text overflow at current fontSize ----------
+    # Same char-width heuristic as scripts/fit-fonts.py (0.55 × fontSize)
+    import re as _re
+    def _strip(s):
+        if not s:
+            return ""
+        s = s.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", '"').replace("&nbsp;", " ")
+        return _re.sub(r"<[^>]+>|&[a-z]+;|&#x?[0-9a-f]+;", "", s, flags=_re.IGNORECASE).strip()
+
+    n_overflow = 0
+    for cid in by_id:
+        if not is_vertex.get(cid):
+            continue
+        c = by_id[cid]
+        st = styles.get(cid, {})
+        if st.get("text") == "1" or st.get("edgeLabel") == "1":
+            continue
+        value = c.get("value", "") or ""
+        if not value.strip():
+            continue
+        g = geoms.get(cid)
+        if not g:
+            continue
+        gw, gh = g[2], g[3]
+        if gw <= 0 or gh <= 0:
+            continue
+        try:
+            fs = float(st.get("fontSize", 12))
+        except (TypeError, ValueError):
+            fs = 12.0
+        # Available area (matching fit-fonts.py)
+        sp = float(st.get("spacing", 2))
+        sl = float(st.get("spacingLeft", sp))
+        sr = float(st.get("spacingRight", sp))
+        stp = float(st.get("spacingTop", sp))
+        sb = float(st.get("spacingBottom", sp))
+        hdr = float(st.get("startSize", 0)) if "swimlane" in st else 0
+        avail_w = max(1.0, gw - sl - sr)
+        avail_h = max(1.0, gh - hdr - stp - sb)
+        wrap = st.get("whiteSpace") == "wrap"
+        lines = [_strip(p) for p in _re.split(r"<br\s*/?>|\n", value, flags=_re.IGNORECASE) if _strip(p)]
+        if not lines:
+            continue
+        char_w = fs * 0.55
+        line_h = fs * 1.2
+        if wrap:
+            max_chars = max(1, int(avail_w / char_w))
+            total = sum(max(1, -(-len(L) // max_chars)) for L in lines)
+            fits = total * line_h <= avail_h
+        else:
+            fits = (len(lines) * line_h <= avail_h) and all(len(L) * char_w <= avail_w for L in lines)
+        if not fits:
+            n_overflow += 1
+            if n_overflow <= 5:  # cap noisy output
+                diag.warn(
+                    "Q405",
+                    f"Cell '{cid}' text overflows at fontSize={int(fs)} (w={gw:.0f} h={gh:.0f}, label='{_strip(value)[:40]}'). Run scripts/fit-fonts.py."
+                )
+    if n_overflow > 0:
+        diag.info("Q405", f"Text overflow: {n_overflow} cell(s) at current fontSize")
+
 
 # ============================================================ F4: DiagramEval F1
 # Feature flag: diagram_eval. Off by default.
@@ -646,6 +707,94 @@ def grounding_check(plan, diag, features):
         )
 
 
+# ============================================================ T8: text metrics
+# Feature flag: text_metrics.  Disable with --features text_metrics=off
+#
+# Reads an annotated plan JSON produced by scripts/text-metrics.js and checks
+# that every shape/container's mxGeometry dimensions are at least as large as
+# the safe dimensions computed from label measurement.
+#
+#   W106 WARN — node width  < text_safe.min_width  (label may overflow horizontally)
+#   W107 WARN — node height < text_safe.min_height (label may clip vertically)
+#   W108 WARN — swimlane startSize < text_safe.min_startSize (header clips label)
+#   T801 INFO — summary (N elements checked, M overflows found)
+#
+# In --mode strict, W106/W107/W108 are promoted to errors.
+# Auto-detects <name>.annotated.plan.json sibling; or pass --annotated-plan PATH.
+
+
+def text_metrics_check(drawio_path, annotated_plan, diag, features, by_id_map, geoms_map, styles_map):
+    """Cross-check emitted mxGeometry against text_safe dims from annotated plan."""
+    if features.get("text_metrics", "auto") == "off":
+        return
+    if not annotated_plan:
+        return
+
+    n_checked = 0
+    n_overflow = 0
+
+    # Flatten all shapes + containers from annotated plan into a single id→element map
+    plan_elements = {}
+    for kind in ("shapes", "containers"):
+        for el in annotated_plan.get(kind, []) or []:
+            eid = el.get("id")
+            if eid:
+                plan_elements[eid] = el
+
+    # by_id_map and geoms_map may span multiple diagram pages — iterate all
+    for page_key, by_id in by_id_map.items():
+        geoms = geoms_map[page_key]
+        styles = styles_map[page_key]
+
+        for cid, cell in by_id.items():
+            el = plan_elements.get(cid)
+            if not el:
+                continue
+            ts = el.get("text_safe")
+            if not ts:
+                continue
+
+            n_checked += 1
+            g = geoms.get(cid)
+            if g is None:
+                continue
+            x, y, w, h = g
+            st = styles.get(cid, {})
+
+            # W106 width overflow
+            min_w = ts.get("min_width")
+            if min_w is not None and w < min_w - 1:
+                n_overflow += 1
+                diag.warn("W106", (
+                    f"Node '{cid}' width={w:.0f}px < text_safe.min_width={min_w}px "
+                    f"— label may overflow horizontally"
+                ))
+
+            # W107 height overflow
+            min_h = ts.get("min_height")
+            if min_h is not None and h < min_h - 1:
+                n_overflow += 1
+                diag.warn("W107", (
+                    f"Node '{cid}' height={h:.0f}px < text_safe.min_height={min_h}px "
+                    f"— label may clip vertically"
+                ))
+
+            # W108 swimlane header overflow
+            min_ss = ts.get("min_startSize")
+            if min_ss is not None and "swimlane" in (cell.get("style") or ""):
+                # Extract declared startSize from live style string (may differ from plan)
+                declared_ss = float(st.get("startSize", 26))
+                if declared_ss < min_ss - 1:
+                    n_overflow += 1
+                    diag.warn("W108", (
+                        f"Container '{cid}' startSize={declared_ss:.0f}px < "
+                        f"text_safe.min_startSize={min_ss}px — header clips label"
+                    ))
+
+    if n_checked > 0:
+        diag.info("T801", f"Text metrics: {n_checked} elements checked, {n_overflow} overflow(s) found")
+
+
 # ------------------------------------------------------------------ comment scan
 def scan_comments(path, diag):
     """E006: XML comments inside mxGraphModel are not allowed in this skill's output."""
@@ -670,6 +819,7 @@ DEFAULT_FEATURES = {
     "quality_gate": "on",
     "grounding_manifest": "on",
     "diagram_eval": "off",
+    "text_metrics": "auto",
 }
 
 
@@ -694,8 +844,39 @@ def _auto_plan_path(drawio_path):
     return candidate if os.path.isfile(candidate) else None
 
 
+def _auto_annotated_plan_path(drawio_path):
+    """If <name>.drawio has a sibling <name>.annotated.plan.json, return it."""
+    import os
+    base, _ = os.path.splitext(drawio_path)
+    candidate = base + ".annotated.plan.json"
+    return candidate if os.path.isfile(candidate) else None
+
+
+def _collect_cells(root):
+    """Return three page-keyed dicts: by_id, geoms, styles — spanning all mxGraphModel pages."""
+    by_id_map = {}
+    geoms_map = {}
+    styles_map = {}
+    for i, model in enumerate(root.iter("mxGraphModel")):
+        key = str(i)
+        by_id = {}
+        geoms = {}
+        styles = {}
+        for c in iter_cells(model):
+            cid = c.get("id")
+            if not cid:
+                continue
+            by_id[cid] = c
+            geoms[cid] = geom_of(c)
+            styles[cid] = style_kv(c)
+        by_id_map[key] = by_id
+        geoms_map[key] = geoms
+        styles_map[key] = styles
+    return by_id_map, geoms_map, styles_map
+
+
 def main():
-    ap = argparse.ArgumentParser(description="Validate a lucidchart-drawio .drawio file")
+    ap = argparse.ArgumentParser(description="Validate a drawio-architect .drawio file")
     ap.add_argument("file", help="Path to .drawio XML file")
     ap.add_argument("--mode", choices=["strict", "standard", "loose"], default="standard")
     ap.add_argument(
@@ -707,6 +888,12 @@ def main():
         "--plan",
         default=None,
         help="Path to JSON plan for F3 grounding checks (default: auto-detect <file>.plan.json)",
+    )
+    ap.add_argument(
+        "--annotated-plan",
+        default=None,
+        dest="annotated_plan",
+        help="Path to annotated plan JSON from text-metrics.js (default: auto-detect <file>.annotated.plan.json)",
     )
     args = ap.parse_args()
 
@@ -724,6 +911,17 @@ def main():
             print(f"WARN  G500: Could not read plan {plan_path}: {e}")
     features["_gt_plan"] = plan  # threaded into validate_model -> diagram_eval
 
+    # Load annotated plan for T8 text metrics check
+    import json as _json
+    annotated_plan_path = args.annotated_plan or _auto_annotated_plan_path(args.file)
+    annotated_plan = None
+    if annotated_plan_path:
+        try:
+            with open(annotated_plan_path) as f:
+                annotated_plan = _json.load(f)
+        except (OSError, _json.JSONDecodeError) as e:
+            print(f"WARN  T800: Could not read annotated plan {annotated_plan_path}: {e}")
+
     root = load(args.file)
     diag = Diag()
     scan_comments(args.file, diag)
@@ -732,6 +930,11 @@ def main():
         validate_model(model, diag, features)
 
     grounding_check(plan, diag, features)
+
+    # T8: text metrics — needs cell index across all pages
+    if features.get("text_metrics", "auto") != "off" and annotated_plan:
+        by_id_map, geoms_map, styles_map = _collect_cells(root)
+        text_metrics_check(args.file, annotated_plan, diag, features, by_id_map, geoms_map, styles_map)
 
     sys.exit(diag.print(args.mode))
 

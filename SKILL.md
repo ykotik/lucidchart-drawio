@@ -19,6 +19,8 @@ features:
   grounding_manifest: on     # on | off              — every node/edge cites a source
   diagram_eval: off          # on | off              — Node-F1 / Path-F1 vs ground-truth plan (DiagramEval)
   auto_layout: auto          # off | elk | dot | auto — auto = elk when diagram has >20 vertices
+  text_metrics: auto         # off | auto            — auto = measure labels, warn on overflow, apply min dims
+  font_fit: auto             # off | auto | grow     — auto = shrink fontSize when text overflows cell
   critic_judge_loop: auto    # off | on | auto       — auto = on when shapes > 15 (See it. Say it. Sorted.)
   eval_harness: off          # on | off              — run eval/ regression suite
 ---
@@ -36,6 +38,8 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `grounding_manifest` | `on` / `off` | `on` | Every node/edge in the plan must include a non-empty `source` field. Validator rejects orphans. |
 | `diagram_eval` | `on` / `off` | `off` | Computes Node-F1 / Path-F1 (DiagramEval, EMNLP 2025) when a ground-truth plan is provided. |
 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
+| `text_metrics` | `off` / `auto` | `auto` | Runs `scripts/text-metrics.js` between plan validation and XML emit. Annotates each shape/container with `text_safe.{min_width, min_height, overflow}`. LLM must apply these as geometry lower bounds. Validator emits W106/W107/W108 if emitted XML is smaller than safe dims. Zero native deps (char-table measurement). See `references/text-metrics.md`. |
+| `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell. `auto` shrinks only; `grow` also enlarges when boxes have headroom (useful after `auto_layout`). Skips edge labels and `style=text;` chrome. See `references/font-fit.md`. |
 | `critic_judge_loop` | `off` / `on` / `auto` | `auto` | Iterative Critic→Candidates→Judge refinement (`auto` = on when >15 shapes). |
 | `eval_harness` | `on` / `off` | `off` | Runs `eval/` regression suite against fixed reference diagrams. |
 
@@ -81,6 +85,14 @@ Step 1. PLAN (JSON, in scratchpad)
   → list containers, shapes, edges with parent IDs + grid cell assignments
   → validate: every shape's parent exists; no two shapes share a grid cell;
     every edge endpoint is a valid id
+Step 1.5. TEXT METRICS (when text_metrics != off)
+  → node scripts/text-metrics.js diagram.plan.json --out diagram.annotated.plan.json
+  → For each shape/container where text_safe.overflow == true:
+      - Set width  = max(declared_width,  text_safe.min_width)
+      - Set height = max(declared_height, text_safe.min_height)
+      - If swimlane: update startSize = max(declared_startSize, text_safe.min_startSize)
+  → Re-check grid collisions (nodes may have grown); adjust neighbours if needed
+  → Use diagram.annotated.plan.json as the plan going forward
 Step 2. EMIT XML (read template, fill placeholders, apply plan)
 Step 3. SELF-CHECK (re-read XML before writing file)
   → see "Pre-flight checklist" below
@@ -218,6 +230,7 @@ waypoints, label anchoring).
 | 10 | Edges in a layer **before** the icon layer | Edges drawn over icons |
 | 11 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
 | 12 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
+| 13 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
 
 ## Style allowlist
 
@@ -247,6 +260,7 @@ Critical (read first when diagram has matching feature):
 - **container-coords.md** — coord math for containers, swimlanes, nested pools (read for #3, #5, #8, #14)
 - **edge-routing.md** — two-layer rendering, orthogonal/curved edges, waypoints, label anchor
 - **plan-format.md** — JSON layout plan schema (the planning step)
+- **text-metrics.md** — label measurement algorithm, char-table widths, min-size rules (read when any label > 20 chars or using multi-line C4-style labels)
 
 Supporting (read for details):
 - **xml-schema.md** — mxGraph attribute reference, geometry, layers, tags
