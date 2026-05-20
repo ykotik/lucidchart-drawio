@@ -1,6 +1,6 @@
 # F7: Eval Harness
 
-Regression suite for the lucidchart-drawio skill. Runs the validator (with all feature flags on) against a fixed set of reference diagrams + ground-truth plans, and tracks Node-F1 / Path-F1 / Q4xx quality metrics over time.
+Regression suite for the drawio-architect skill. Runs the validator (with all feature flags on) against a fixed set of reference diagrams + ground-truth plans, and tracks Node-F1 / Path-F1 / Q4xx quality metrics over time.
 
 **Feature flag:** `eval_harness` — `on` / `off` (default `off`).
 
@@ -20,15 +20,19 @@ eval/
 │   │   ├── prompt.md
 │   │   ├── expected.plan.json
 │   │   └── reference.drawio
-│   └── swimlanes-trust-zones/
-│       ├── prompt.md
-│       ├── expected.plan.json
-│       └── reference.drawio
+│   ├── swimlanes-trust-zones/
+│   │   ├── prompt.md
+│   │   ├── expected.plan.json
+│   │   └── reference.drawio
+│   └── text-overflow/
+│       ├── prompt.md              — long-label scope-columns (text_metrics focus)
+│       ├── expected.plan.json     — annotated with text_safe blocks (output of text-metrics.js)
+│       └── reference.drawio       — correctly sized nodes, zero W106/W107/W108
 └── results/
     └── 2026-05-19_001.json        — per-run output (timestamped, gitignored)
 ```
 
-Three cases ship in v2.1 — `c4-context-commerce`, `pipeline-streaming`, `swimlanes-trust-zones`. Add more as confidence grows.
+Four cases ship in v2.1 — `c4-context-commerce`, `pipeline-streaming`, `swimlanes-trust-zones`, `text-overflow`. Add more as confidence grows.
 
 ## Usage
 
@@ -65,6 +69,7 @@ Per case:
 | Orthogonality % | F2 Q402 |
 | Area utilization % | F2 Q404 |
 | Grounding coverage | F3 G503 |
+| Text overflow violations (W106/W107/W108) | F8 T801 — 0 = pass |
 
 The harness writes a timestamped `results/<date>_<seq>.json` and (when run with `--against-baseline`) prints a delta table against `baseline.json`.
 
