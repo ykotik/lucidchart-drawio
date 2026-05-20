@@ -2,15 +2,24 @@
 
 The skill normally relies on the LLM to assign coordinates from named templates and grid heuristics. For complex diagrams where edges still cross or shapes don't align cleanly, run the diagram through a layout engine after emission.
 
-Controlled by the `auto_layout` feature flag in SKILL.md frontmatter (`off` / `elk` / `dot`). Default: `off`.
+Controlled by the `auto_layout` feature flag in SKILL.md frontmatter:
+`off` / `elk` / `dot` / `auto`. **Default: `auto`** — runs ELK only when the diagram has >20 vertices (threshold configurable via `--auto-threshold N`).
+
+| Value | Behavior |
+|---|---|
+| `off` | Never run a layout engine. Use LLM coords as-is. |
+| `elk` | Always run ELK Layered. |
+| `dot` | Always run Graphviz dot (no nested container support). |
+| `auto` (default) | Count vertices; if `> 20`, run ELK. Otherwise no-op — small diagrams usually have clean LLM coords. |
 
 ## When to use
 
-- Diagram has >15 shapes and the validator's `Q401` (edge crossings) fires
+- Diagram has >20 shapes (the `auto` default triggers automatically)
+- Validator's `Q401` (edge crossings) fires on a smaller diagram → override with `--features auto_layout=elk`
 - Container nesting >2 levels deep — LLM coord math degrades fast
 - You're regenerating a diagram with new content but the same logical graph
 
-Do NOT use for sequence diagrams (lifelines must stay vertical at fixed columns), grid-matrix (cells are positional by design), or BPMN (lane assignment is semantic, not layout).
+Do NOT use for sequence diagrams (lifelines must stay vertical at fixed columns), grid-matrix (cells are positional by design), or BPMN (lane assignment is semantic, not layout). For these, set `auto_layout=off` per-diagram.
 
 ## Engines
 

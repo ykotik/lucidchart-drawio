@@ -1,8 +1,10 @@
 ---
-name: lucidchart-drawio
+name: drawio-architect
 description: >-
-  Generate Lucidchart-importable architecture diagrams as draw.io XML (.drawio) with
-  strict layout discipline and clean edge routing. 15 layout patterns: hub-radial,
+  Generate clean draw.io architecture diagrams (.drawio / mxGraph XML) with strict
+  layout discipline and clean edge routing. Output opens natively in draw.io and
+  imports cleanly into Lucidchart, Confluence drawio plugin, and any mxGraph-aware
+  tool. 15 layout patterns: hub-radial,
   scope-columns, swimlanes, LR pipeline, tenant-namespace, C4 context/container/component,
   ERD crow's-foot, UML class, sequence, tree-hierarchy, flowchart-DAG, BPMN, grid-matrix.
   Vendor icon vocabularies for AWS, Azure, GCP, UML, ER, BPMN. Enforces container-relative
@@ -16,7 +18,7 @@ features:
   quality_gate: on           # on | off              — edge crossings, orthogonality, length variance
   grounding_manifest: on     # on | off              — every node/edge cites a source
   diagram_eval: off          # on | off              — Node-F1 / Path-F1 vs ground-truth plan (DiagramEval)
-  auto_layout: off           # off | elk | dot       — call ELK or Graphviz dot for coord assignment
+  auto_layout: auto          # off | elk | dot | auto — auto = elk when diagram has >20 vertices
   critic_judge_loop: auto    # off | on | auto       — auto = on when shapes > 15 (See it. Say it. Sorted.)
   eval_harness: off          # on | off              — run eval/ regression suite
 ---
@@ -33,7 +35,7 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `quality_gate` | `on` / `off` | `on` | Adds edge-crossings, orthogonality conformance, edge-length variance, area utilization checks to validator. |
 | `grounding_manifest` | `on` / `off` | `on` | Every node/edge in the plan must include a non-empty `source` field. Validator rejects orphans. |
 | `diagram_eval` | `on` / `off` | `off` | Computes Node-F1 / Path-F1 (DiagramEval, EMNLP 2025) when a ground-truth plan is provided. |
-| `auto_layout` | `off` / `elk` / `dot` | `off` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. |
+| `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
 | `critic_judge_loop` | `off` / `on` / `auto` | `auto` | Iterative Critic→Candidates→Judge refinement (`auto` = on when >15 shapes). |
 | `eval_harness` | `on` / `off` | `off` | Runs `eval/` regression suite against fixed reference diagrams. |
 

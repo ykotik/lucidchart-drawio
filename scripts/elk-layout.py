@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-F5: ELK auto-layout for lucidchart-drawio .drawio files
+F5: ELK auto-layout for drawio-architect .drawio files
 
 Replaces LLM-emitted coordinates with output from the Eclipse Layout Kernel
 (ELK Layered, the production-quality hierarchical engine). Falls back to
@@ -315,12 +315,18 @@ def main():
     ap = argparse.ArgumentParser(description="ELK / Graphviz auto-layout for .drawio files")
     ap.add_argument("input", help="Source .drawio file")
     ap.add_argument("output", nargs="?", help="Output path (default: <input>.laid-out.drawio)")
-    ap.add_argument("--engine", choices=["elk", "dot"], default="elk")
+    ap.add_argument("--engine", choices=["elk", "dot", "auto"], default="auto")
     ap.add_argument("--direction", choices=["RIGHT", "DOWN", "LEFT", "UP"], default="RIGHT")
+    ap.add_argument(
+        "--auto-threshold",
+        type=int,
+        default=20,
+        help="auto_layout=auto runs ELK when vertex count exceeds this (default: 20)",
+    )
     ap.add_argument(
         "--features",
         default="",
-        help="Feature overrides: 'auto_layout=elk', 'auto_layout=dot', or 'auto_layout=off' to no-op",
+        help="Feature overrides: 'auto_layout=elk', 'auto_layout=dot', 'auto_layout=auto', or 'auto_layout=off'",
     )
     args = ap.parse_args()
 
@@ -332,9 +338,9 @@ def main():
             feats[k.strip()] = v.strip()
 
     if feats.get("auto_layout") == "off":
-        print("auto_layout=off — no-op. Use --engine elk|dot or --features auto_layout=elk to run.")
+        print("auto_layout=off — no-op.")
         sys.exit(0)
-    engine = feats.get("auto_layout", "elk")
+    engine = feats.get("auto_layout", "auto")
 
     tree = ET.parse(args.input)
     root = tree.getroot()
@@ -343,7 +349,34 @@ def main():
         print(f"No cells found in {args.input}")
         sys.exit(1)
 
-    print(f"Built graph: {len(graph['children'])} top-level nodes, {len(graph['edges'])} edges")
+    # Count vertices for `auto` mode decision
+    def _count(node):
+        n = 1
+        for ch in node.get("children", []) or []:
+            n += _count(ch)
+        return n
+    n_vertices = sum(_count(n) for n in graph["children"])
+
+    # Patterns where auto-layout damages the semantic layout — opt out by name
+    SKIP_PATTERNS = ("sequence", "grid", "matrix", "bpmn", "swim")
+
+    if engine == "auto":
+        # Detect pattern from <diagram name="..."> attribute
+        diagram_name = ""
+        for d in root.iter("diagram"):
+            diagram_name = (d.get("name") or "").lower()
+            break
+        if any(p in diagram_name for p in SKIP_PATTERNS):
+            print(f"auto_layout=auto: pattern '{diagram_name}' is positional — skipping (use --features auto_layout=elk to force)")
+            sys.exit(0)
+        if n_vertices > args.auto_threshold:
+            engine = "elk"
+            print(f"auto_layout=auto: {n_vertices} vertices > {args.auto_threshold} threshold → running ELK")
+        else:
+            print(f"auto_layout=auto: {n_vertices} vertices ≤ {args.auto_threshold} threshold → skipping (LLM coords retained)")
+            sys.exit(0)
+
+    print(f"Built graph: {len(graph['children'])} top-level nodes, {n_vertices} total vertices, {len(graph['edges'])} edges")
     print(f"Running engine={engine} direction={args.direction}...")
 
     if engine == "elk":
