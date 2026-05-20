@@ -113,18 +113,14 @@ Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.
 
 Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
 
-### Critic-Candidates-Judge loop (F6) — `critic_judge_loop`
+### Critic-Candidates-Judge loop (F6) — `critic_judge_loop` [DEPRECATED]
 
-For diagrams >15 shapes (default `auto`), the skill runs an iterative refinement loop after the first pass:
+*Note: As of v2.1.1, the token-heavy LLM multi-agent loop is deprecated in favor of deterministic constraint-based overlap removal.*
 
-1. **Critic** subagent reads the .drawio + plan + validator output → numbered issue list
-2. **Three Candidate** subagents in parallel produce revised plans (conservative / aggressive / focused strategies)
-3. **Judge** subagent picks the winner
-4. Render → re-validate → repeat (max 3 iterations)
+For fixing overlaps and routing in dense diagrams (>15 shapes), you should now use the local overlap removal engine instead of the LLM:
+`python3 scripts/elk-layout.py path/to/diagram.drawio --engine neato`
 
-Source: *See it. Say it. Sorted.* (arxiv 2508.15222). See `references/critic-judge-loop.md` for prompts and stop conditions.
-
-Turn off with `critic_judge_loop: off` in frontmatter. Set to `on` to always run regardless of shape count.
+This uses Graphviz's `neato` algorithm (`-Goverlap=prism`) to mathematically separate overlapping nodes while perfectly preserving your intended structural layout and mental map, without incurring additional LLM token costs.
 
 ### Eval harness (F7) — `eval_harness`
 

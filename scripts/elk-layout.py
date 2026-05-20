@@ -275,7 +275,94 @@ def _dot_json_to_elk(dot_out, original_graph):
         h = float(obj.get("height", 1)) * 72
         x = cx - w / 2.0
         y = canvas_h - cy - h / 2.0
-        laid["children"].append({"id": obj["name"], "x": x, "y": y, "width": w, "height": h})
+    return laid
+
+
+# ============================================================ neato (overlap removal)
+
+
+def compute_absolute(cid, parents, geoms):
+    """Compute absolute x,y by walking up the container tree."""
+    x, y = 0.0, 0.0
+    curr = cid
+    while curr and curr not in ("0", "1"):
+        g = geoms.get(curr)
+        if g:
+            x += g[0]
+            y += g[1]
+        curr = parents.get(curr)
+    return x, y
+
+
+def run_neato(graph, by_id, parents, geoms):
+    """Overlap removal: use Graphviz neato with overlap=prism, retaining user positions."""
+    def all_nodes(n, out):
+        for ch in n.get("children", []) or []:
+            all_nodes(ch, out)
+        out.append(n)
+
+    nodes = []
+    for n in graph["children"]:
+        all_nodes(n, nodes)
+
+    dot = ["digraph G {", '  graph [overlap=prism, splines=spline];', '  node [shape=box, fixedsize=true];']
+    for n in nodes:
+        if "children" in n:
+            continue  # containers skipped in dot
+        cid = n["id"]
+        cx, cy = compute_absolute(cid, parents, geoms)
+        w, h = n["width"], n["height"]
+        # Center coordinates for graphviz, y inverted
+        center_x = cx + w / 2.0
+        center_y = -(cy + h / 2.0)
+        dot.append(f'  "{cid}" [pos="{center_x},{center_y}", width={w / 72:.2f}, height={h / 72:.2f}];')
+    
+    for e in graph["edges"]:
+        dot.append(f'  "{e["sources"][0]}" -> "{e["targets"][0]}";')
+    dot.append("}")
+
+    try:
+        proc = subprocess.run(
+            ["neato", "-Goverlap=prism", "-Tjson0"],
+            input="\n".join(dot),
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+    except FileNotFoundError:
+        raise RuntimeError("`neato` (Graphviz) not found. `brew install graphviz`.")
+    if proc.returncode != 0:
+        raise RuntimeError(f"Graphviz neato failed:\n{proc.stderr}")
+    
+    return _neato_json_to_elk(json.loads(proc.stdout), graph, parents, geoms)
+
+
+def _neato_json_to_elk(neato_out, original_graph, parents, geoms):
+    objects = neato_out.get("objects", [])
+    laid = {"id": "root", "children": [], "edges": original_graph["edges"]}
+    for obj in objects:
+        if "name" not in obj or "pos" not in obj:
+            continue
+        cid = obj["name"]
+        cx_gv, cy_gv = obj["pos"].split(",")
+        w = float(obj.get("width", 1)) * 72
+        h = float(obj.get("height", 1)) * 72
+        
+        # Convert from graphviz center (inverted y) back to draw.io top-left absolute
+        abs_x = float(cx_gv) - w / 2.0
+        abs_y = (-float(cy_gv)) - h / 2.0
+        
+        # Convert absolute back to relative
+        parent_id = parents.get(cid)
+        px, py = compute_absolute(parent_id, parents, geoms) if parent_id else (0.0, 0.0)
+        
+        laid["children"].append({
+            "id": cid,
+            "x": abs_x - px,
+            "y": abs_y - py,
+            "width": w,
+            "height": h
+        })
     return laid
 
 
@@ -315,7 +402,7 @@ def main():
     ap = argparse.ArgumentParser(description="ELK / Graphviz auto-layout for .drawio files")
     ap.add_argument("input", help="Source .drawio file")
     ap.add_argument("output", nargs="?", help="Output path (default: <input>.laid-out.drawio)")
-    ap.add_argument("--engine", choices=["elk", "dot", "auto"], default="auto")
+    ap.add_argument("--engine", choices=["elk", "dot", "neato", "auto"], default="auto")
     ap.add_argument("--direction", choices=["RIGHT", "DOWN", "LEFT", "UP"], default="RIGHT")
     ap.add_argument(
         "--auto-threshold",
@@ -383,6 +470,10 @@ def main():
         laid = run_elk(graph)
     elif engine == "dot":
         laid = run_dot(graph)
+    elif engine == "neato":
+        # We need geoms for neato, re-parse geoms here since build_elk_graph doesn't return it
+        geoms = {c.get("id"): geom_of(c) for c in iter_cells(root) if c.get("id")}
+        laid = run_neato(graph, by_id, parents, geoms)
     else:
         print(f"Unknown engine: {engine}")
         sys.exit(1)

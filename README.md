@@ -17,6 +17,7 @@ Confluence drawio plugin, and any mxGraph-aware tool.
 - **Vendor shape vocabularies** — AWS / Azure / GCP / UML+ERD+BPMN
 - **Pre-flight validator** — `python3 scripts/validate.py <file>` catches duplicate IDs, orphan parents, missing edge geometry, overlaps
 - **Style allowlist** — model cannot invent style fragments
+- **Deterministic Overlap Removal (v2.1.1)** — Replaces the LLM Critic-Judge loop with Graphviz `neato` constraint-solving (`scripts/elk-layout.py <file> --engine neato`)
 
 ## Install
 
