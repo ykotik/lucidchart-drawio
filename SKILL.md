@@ -96,6 +96,8 @@ Step 3. SELF-CHECK (re-read XML before writing file)
 Step 4. WRITE file with the Write tool
 Step 5. VALIDATE (optional but recommended for >20 shapes)
   → run scripts/validate.py
+Step 6. OVERLAP REMOVAL (mandatory for dense/complex diagrams)
+  → run scripts/elk-layout.py <file.drawio> --engine neato to automatically resolve overlaps
 ```
 
 See `references/plan-format.md` for the JSON plan schema.
@@ -136,6 +138,7 @@ See `eval/README.md` for the full layout and metrics tracked (Node F1, Path F1, 
 10. **Self-check** — run the pre-flight checklist (below)
 11. **Write file** to workspace
 12. **Validate** (optional) — `python3 scripts/validate.py <file.drawio>`
+13. **Overlap Removal** (mandatory for dense/complex diagrams) — run `python3 scripts/elk-layout.py <file.drawio> --engine neato`
 
 ## Layout pattern selection (12 patterns)
 
@@ -267,8 +270,9 @@ Vendor vocabularies:
 ## Scripts
 
 - `scripts/validate.py` — pre-flight validator (E0xx errors, W1xx warnings, Q4xx quality metrics, G5xx grounding, D6xx DiagramEval F1). Run with: `python3 scripts/validate.py <file>.drawio`
-- `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto`
+- `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
+
 
 ## Prompt examples
 
