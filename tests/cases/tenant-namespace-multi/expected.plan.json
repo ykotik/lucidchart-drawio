@@ -1,0 +1,305 @@
+{
+  "pattern": "tenant-namespace",
+  "canvas": {
+    "w": 1800,
+    "h": 1200
+  },
+  "containers": [
+    {
+      "id": "cont_t1",
+      "label": "Tenant-Alpha",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_t2",
+      "label": "Tenant-Beta",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cont_t3",
+      "label": "Tenant-Gamma",
+      "cite": "user-stated"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "t1_kf",
+      "label": "T1 Kafka Topic",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t1_fl",
+      "label": "T1 Flink Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t1_db",
+      "label": "T1 PostgreSQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t1_rd",
+      "label": "T1 Redis Cache",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t1_s3",
+      "label": "T1 S3 Bucket",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t2_kf",
+      "label": "T2 Kafka Topic",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t2_fl",
+      "label": "T2 Flink Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t2_db",
+      "label": "T2 PostgreSQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t2_rd",
+      "label": "T2 Redis Cache",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t2_s3",
+      "label": "T2 S3 Bucket",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t3_kf",
+      "label": "T3 Kafka Topic",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t3_fl",
+      "label": "T3 Flink Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t3_db",
+      "label": "T3 PostgreSQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t3_rd",
+      "label": "T3 Redis Cache",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t3_s3",
+      "label": "T3 S3 Bucket",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sh_apigw",
+      "label": "API Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sh_control",
+      "label": "Control Plane",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sh_monitor",
+      "label": "Monitoring Stack",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sh_vault",
+      "label": "Secrets Manager",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "sh_apigw",
+      "target": "t1_kf",
+      "label": "Ingests Tenant-Alpha metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "sh_apigw",
+      "target": "t2_kf",
+      "label": "Ingests Tenant-Beta metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "sh_apigw",
+      "target": "t3_kf",
+      "label": "Ingests Tenant-Gamma metrics",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "t1_kf",
+      "target": "t1_fl",
+      "label": "Processes events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "t1_fl",
+      "target": "t1_db",
+      "label": "Saves transactional logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "t1_fl",
+      "target": "t1_rd",
+      "label": "Updates caching items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "t1_fl",
+      "target": "t1_s3",
+      "label": "Saves bulk archive data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "t2_kf",
+      "target": "t2_fl",
+      "label": "Processes events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "t2_fl",
+      "target": "t2_db",
+      "label": "Saves transactional logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "t2_fl",
+      "target": "t2_rd",
+      "label": "Updates caching items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "t2_fl",
+      "target": "t2_s3",
+      "label": "Saves bulk archive data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "t3_kf",
+      "target": "t3_fl",
+      "label": "Processes events",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "t3_fl",
+      "target": "t3_db",
+      "label": "Saves transactional logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "t3_fl",
+      "target": "t3_rd",
+      "label": "Updates caching items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "t3_fl",
+      "target": "t3_s3",
+      "label": "Saves bulk archive data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "sh_control",
+      "target": "t1_fl",
+      "label": "Updates jobs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "sh_control",
+      "target": "t2_fl",
+      "label": "Updates jobs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "sh_control",
+      "target": "t3_fl",
+      "label": "Updates jobs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "t1_fl",
+      "target": "sh_monitor",
+      "label": "Streams metrics telemetry",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "t2_fl",
+      "target": "sh_monitor",
+      "label": "Streams metrics telemetry",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "t3_fl",
+      "target": "sh_monitor",
+      "label": "Streams metrics telemetry",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "t1_fl",
+      "target": "sh_vault",
+      "label": "Decrypts password credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "t2_fl",
+      "target": "sh_vault",
+      "label": "Decrypts password credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "t3_fl",
+      "target": "sh_vault",
+      "label": "Decrypts password credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_24",
+      "source": "sh_control",
+      "target": "sh_vault",
+      "label": "Secures configs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_25",
+      "source": "sh_apigw",
+      "target": "sh_control",
+      "label": "Forwards admin configurations",
+      "cite": "user-stated"
+    }
+  ]
+}

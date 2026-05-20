@@ -1,0 +1,365 @@
+{
+  "pattern": "tree-hierarchy",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "ceo",
+      "label": "CEO",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vp_eng",
+      "label": "VP Engineering",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vp_prod",
+      "label": "VP Product",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vp_mkt",
+      "label": "VP Marketing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vp_sales",
+      "label": "VP Sales",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vp_fin",
+      "label": "VP Finance",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_dev",
+      "label": "Dir Software Development",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_qa",
+      "label": "Dir Quality Assurance",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_ops",
+      "label": "Dir Cloud Operations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_mgmt",
+      "label": "Dir Product Management",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_design",
+      "label": "Dir UX/UI Design",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_growth",
+      "label": "Dir Growth Product",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_brand",
+      "label": "Dir Brand Marketing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_pr",
+      "label": "Dir Public Relations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_perf",
+      "label": "Dir Performance Ads",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_ent",
+      "label": "Dir Enterprise Sales",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_smb",
+      "label": "Dir SMB Sales",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_ops_s",
+      "label": "Dir Sales Operations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_acct",
+      "label": "Dir Accounting",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_fp",
+      "label": "Dir FP&A",
+      "cite": "user-stated"
+    },
+    {
+      "id": "dir_tax",
+      "label": "Dir Tax & Treasury",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_fe",
+      "label": "Lead Frontend",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_be",
+      "label": "Lead Backend",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_mob",
+      "label": "Lead Mobile",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_aut",
+      "label": "Lead Test Automation",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_perf_t",
+      "label": "Lead Perf Testing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_sec_t",
+      "label": "Lead Security Testing",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_sre",
+      "label": "Lead SRE",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_db",
+      "label": "Lead DBA",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ld_sec_o",
+      "label": "Lead Security Operations",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "ceo",
+      "target": "vp_eng",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "ceo",
+      "target": "vp_prod",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "ceo",
+      "target": "vp_mkt",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "ceo",
+      "target": "vp_sales",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "ceo",
+      "target": "vp_fin",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "vp_eng",
+      "target": "dir_dev",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "vp_eng",
+      "target": "dir_qa",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "vp_eng",
+      "target": "dir_ops",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "vp_prod",
+      "target": "dir_mgmt",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "vp_prod",
+      "target": "dir_design",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "vp_prod",
+      "target": "dir_growth",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "vp_mkt",
+      "target": "dir_brand",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "vp_mkt",
+      "target": "dir_pr",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "vp_mkt",
+      "target": "dir_perf",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "vp_sales",
+      "target": "dir_ent",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "vp_sales",
+      "target": "dir_smb",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "vp_sales",
+      "target": "dir_ops_s",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "vp_fin",
+      "target": "dir_acct",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "vp_fin",
+      "target": "dir_fp",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "vp_fin",
+      "target": "dir_tax",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "dir_dev",
+      "target": "ld_fe",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "dir_dev",
+      "target": "ld_be",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "dir_dev",
+      "target": "ld_mob",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "dir_qa",
+      "target": "ld_aut",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_24",
+      "source": "dir_qa",
+      "target": "ld_perf_t",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_25",
+      "source": "dir_qa",
+      "target": "ld_sec_t",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_26",
+      "source": "dir_ops",
+      "target": "ld_sre",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_27",
+      "source": "dir_ops",
+      "target": "ld_db",
+      "label": "manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_28",
+      "source": "dir_ops",
+      "target": "ld_sec_o",
+      "label": "manages",
+      "cite": "user-stated"
+    }
+  ]
+}

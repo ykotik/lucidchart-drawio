@@ -1,0 +1,48 @@
+name: Diagram Test Suite
+on:
+  push:
+    paths: ['SKILL.md', 'references/**', 'templates/**', 'scripts/**']
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install draw.io CLI (headless)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          wget -q https://github.com/jgraph/drawio-desktop/releases/download/v24.7.17/drawio-amd64-24.7.17.deb
+          sudo dpkg -i drawio-amd64-24.7.17.deb || sudo apt-get -f install -y
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r tests/requirements.txt
+
+      - name: Export .drawio to PNG (where reference.drawio exists)
+        run: |
+          for f in tests/cases/*/reference.drawio; do
+            if [ -f "$f" ]; then
+              echo "Exporting $f..."
+              xvfb-run drawio -x -f png --scale 2 -o "${f%.drawio}.png" "$f"
+            fi
+          done
+
+      - name: Run Test Suite
+        run: |
+          pytest tests/ -v --tb=short
+
+      - name: Upload visual diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-diffs
+          path: tests/cases/*/diff_*.png

@@ -1,0 +1,264 @@
+{
+  "pattern": "uml-class",
+  "canvas": {
+    "w": 1600,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "cls_person",
+      "label": "Person (abstract)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_cust",
+      "label": "Customer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_emp",
+      "label": "Employee",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_order",
+      "label": "Order",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_line",
+      "label": "OrderLine",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_prod",
+      "label": "Product",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_cat",
+      "label": "Category",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_pay",
+      "label": "Payment",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_ship",
+      "label": "Shipment",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_addr",
+      "label": "Address",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_rev",
+      "label": "Review",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_disc",
+      "label": "Discount",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_inv",
+      "label": "Inventory",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cls_supp",
+      "label": "Supplier",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "cls_cust",
+      "target": "cls_person",
+      "label": "generalization",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "cls_emp",
+      "target": "cls_person",
+      "label": "generalization",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "cls_cust",
+      "target": "cls_order",
+      "label": "association 1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "cls_order",
+      "target": "cls_line",
+      "label": "composition 1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "cls_line",
+      "target": "cls_prod",
+      "label": "association many to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "cls_prod",
+      "target": "cls_cat",
+      "label": "association many to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "cls_order",
+      "target": "cls_pay",
+      "label": "composition 1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "cls_order",
+      "target": "cls_ship",
+      "label": "association many to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "cls_cust",
+      "target": "cls_addr",
+      "label": "composition 1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "cls_prod",
+      "target": "cls_rev",
+      "label": "association 1 to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "cls_prod",
+      "target": "cls_disc",
+      "label": "association many to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "cls_prod",
+      "target": "cls_inv",
+      "label": "association 1 to 1",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "cls_prod",
+      "target": "cls_supp",
+      "label": "association many to many",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "cls_emp",
+      "target": "cls_order",
+      "label": "association manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "cls_cust",
+      "target": "cls_rev",
+      "label": "association writes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "cls_supp",
+      "target": "cls_addr",
+      "label": "composition supplier address",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "cls_ship",
+      "target": "cls_addr",
+      "label": "association shipping address",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "cls_pay",
+      "target": "cls_cust",
+      "label": "association paying customer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "cls_inv",
+      "target": "cls_supp",
+      "label": "association replenishment source",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "cls_disc",
+      "target": "cls_cust",
+      "label": "association redeemed by",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "cls_emp",
+      "target": "cls_cust",
+      "label": "association support contact",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "cls_person",
+      "target": "cls_addr",
+      "label": "association primary residence",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "cls_order",
+      "target": "cls_disc",
+      "label": "association applied discount",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "cls_ship",
+      "target": "cls_emp",
+      "label": "association dispatched by",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_24",
+      "source": "cls_inv",
+      "target": "cls_line",
+      "label": "association reserves stock",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_25",
+      "source": "cls_supp",
+      "target": "cls_inv",
+      "label": "association supplies components",
+      "cite": "user-stated"
+    }
+  ]
+}

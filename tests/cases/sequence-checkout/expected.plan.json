@@ -1,0 +1,243 @@
+{
+  "pattern": "sequence",
+  "canvas": {
+    "w": 1600,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "ll_browser",
+      "label": "Browser",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_apigw",
+      "label": "API Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_cart",
+      "label": "Cart Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_order",
+      "label": "Order Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_pay",
+      "label": "Payment Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_inv",
+      "label": "Inventory Service",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ll_notif",
+      "label": "Notification Service",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "ll_browser",
+      "target": "ll_apigw",
+      "label": "POST /checkout",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "ll_apigw",
+      "target": "ll_cart",
+      "label": "GET /cart/active",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "ll_cart",
+      "target": "ll_apigw",
+      "label": "Cart data returned",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "ll_apigw",
+      "target": "ll_order",
+      "label": "POST /order (create)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "ll_order",
+      "target": "ll_inv",
+      "label": "POST /inventory/reserve",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "ll_inv",
+      "target": "ll_order",
+      "label": "Stock reserved (success)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "ll_order",
+      "target": "ll_pay",
+      "label": "POST /payment/charge",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "ll_pay",
+      "target": "ll_order",
+      "label": "Charge successful (auth code)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "ll_order",
+      "target": "ll_notif",
+      "label": "POST /notify/order-created",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "ll_notif",
+      "target": "ll_browser",
+      "label": "Websocket: order completed",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "ll_order",
+      "target": "ll_apigw",
+      "label": "Order confirmation payload",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "ll_apigw",
+      "target": "ll_browser",
+      "label": "201 Created (Order Details)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "ll_notif",
+      "target": "ll_pay",
+      "label": "Queries billing contact details",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "ll_pay",
+      "target": "ll_notif",
+      "label": "Returns email",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "ll_notif",
+      "target": "ll_cart",
+      "label": "Requests final state snapshot",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "ll_cart",
+      "target": "ll_notif",
+      "label": "Returns items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "ll_browser",
+      "target": "ll_cart",
+      "label": "Clear local storage state",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "ll_order",
+      "target": "ll_cart",
+      "label": "DELETE /cart/active",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "ll_cart",
+      "target": "ll_order",
+      "label": "Cart deleted status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "ll_inv",
+      "target": "ll_notif",
+      "label": "Warns on low stock item thresholds",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "ll_pay",
+      "target": "ll_inv",
+      "label": "Settles pending batch orders",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_21",
+      "source": "ll_inv",
+      "target": "ll_pay",
+      "label": "Batch settlement confirmations",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_22",
+      "source": "ll_browser",
+      "target": "ll_apigw",
+      "label": "GET /checkout/status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_23",
+      "source": "ll_apigw",
+      "target": "ll_order",
+      "label": "GET /order/status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_24",
+      "source": "ll_order",
+      "target": "ll_apigw",
+      "label": "Order status payload",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_25",
+      "source": "ll_apigw",
+      "target": "ll_browser",
+      "label": "200 OK (Status info)",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_26",
+      "source": "ll_order",
+      "target": "ll_inv",
+      "label": "POST /inventory/commit",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_27",
+      "source": "ll_inv",
+      "target": "ll_order",
+      "label": "Stock committed status",
+      "cite": "user-stated"
+    }
+  ]
+}

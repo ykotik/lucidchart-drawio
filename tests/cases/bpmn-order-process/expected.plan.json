@@ -1,0 +1,253 @@
+{
+  "pattern": "bpmn-process",
+  "canvas": {
+    "w": 1800,
+    "h": 1200
+  },
+  "containers": [
+    {
+      "id": "pool_order",
+      "label": "Order Management Pool",
+      "cite": "user-stated"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "lane_sales",
+      "label": "Sales Lane",
+      "cite": "user-stated"
+    },
+    {
+      "id": "lane_wh",
+      "label": "Warehouse Lane",
+      "cite": "user-stated"
+    },
+    {
+      "id": "lane_ship",
+      "label": "Shipping Lane",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ev_start",
+      "label": "Order Received Start",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_val",
+      "label": "Validate Order",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gw_credit",
+      "label": "Credit Approved Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_reject",
+      "label": "Reject Order",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_pick",
+      "label": "Pick Items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_pack",
+      "label": "Pack Items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gw_split",
+      "label": "Split Pack Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_label",
+      "label": "Generate Label",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gw_method",
+      "label": "Ship Method Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_standard",
+      "label": "Ship Standard",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_express",
+      "label": "Ship Express",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_invoice",
+      "label": "Send Invoice",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_status",
+      "label": "Update Status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "t_notify",
+      "label": "Notify Customer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ev_sla",
+      "label": "SLA Breach Event",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ev_end",
+      "label": "Order Completed End",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "ev_start",
+      "target": "t_val",
+      "label": "starts flow",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "t_val",
+      "target": "gw_credit",
+      "label": "checks status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "gw_credit",
+      "target": "t_pick",
+      "label": "Yes",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "gw_credit",
+      "target": "t_reject",
+      "label": "No",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "t_pick",
+      "target": "t_pack",
+      "label": "moves items",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "t_pack",
+      "target": "gw_split",
+      "label": "checks bulk size",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "gw_split",
+      "target": "t_label",
+      "label": "Single box",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "gw_split",
+      "target": "t_pick",
+      "label": "Needs split",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "t_label",
+      "target": "gw_method",
+      "label": "checks priority",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "gw_method",
+      "target": "t_standard",
+      "label": "Standard shipping",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "gw_method",
+      "target": "t_express",
+      "label": "Express shipping",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "t_standard",
+      "target": "t_invoice",
+      "label": "completes transit",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "t_express",
+      "target": "t_invoice",
+      "label": "completes transit",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "t_invoice",
+      "target": "t_status",
+      "label": "logs billing details",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "t_status",
+      "target": "t_notify",
+      "label": "publishes status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "t_notify",
+      "target": "ev_end",
+      "label": "closes process",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "t_pick",
+      "target": "ev_sla",
+      "label": "Timer active",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "ev_sla",
+      "target": "t_notify",
+      "label": "Notifies supervisor",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "t_reject",
+      "target": "t_notify",
+      "label": "Informs failure status",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "t_val",
+      "target": "ev_sla",
+      "label": "Timer active",
+      "cite": "user-stated"
+    }
+  ]
+}

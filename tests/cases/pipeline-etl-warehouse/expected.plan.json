@@ -1,0 +1,222 @@
+{
+  "pattern": "pipeline",
+  "canvas": {
+    "w": 1600,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "src_pg",
+      "label": "PostgreSQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_my",
+      "label": "MySQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_sf",
+      "label": "Salesforce API",
+      "cite": "user-stated"
+    },
+    {
+      "id": "src_s3",
+      "label": "S3 Raw Bucket",
+      "cite": "user-stated"
+    },
+    {
+      "id": "glu_crawl",
+      "label": "AWS Glue Crawler",
+      "cite": "user-stated"
+    },
+    {
+      "id": "glu_etl",
+      "label": "AWS Glue ETL Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "stg_s3",
+      "label": "S3 Staging Bucket",
+      "cite": "user-stated"
+    },
+    {
+      "id": "rs_clust",
+      "label": "Redshift Cluster",
+      "cite": "user-stated"
+    },
+    {
+      "id": "bi_qs",
+      "label": "QuickSight Dashboard",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ml_sage",
+      "label": "SageMaker ML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "iam_role",
+      "label": "IAM Roles",
+      "cite": "user-stated"
+    },
+    {
+      "id": "kms_keys",
+      "label": "KMS Keys",
+      "cite": "user-stated"
+    },
+    {
+      "id": "vpc_peer",
+      "label": "VPC Peering",
+      "cite": "user-stated"
+    },
+    {
+      "id": "cat_meta",
+      "label": "Glue Catalog",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "src_pg",
+      "target": "glu_crawl",
+      "label": "Scans metadata",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "src_my",
+      "target": "glu_crawl",
+      "label": "Scans metadata",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "src_sf",
+      "target": "src_s3",
+      "label": "Dumps hourly",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "src_s3",
+      "target": "glu_crawl",
+      "label": "Scans files",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "glu_crawl",
+      "target": "cat_meta",
+      "label": "Updates schema",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "cat_meta",
+      "target": "glu_etl",
+      "label": "Informs schema",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "src_pg",
+      "target": "glu_etl",
+      "label": "Extracts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "src_my",
+      "target": "glu_etl",
+      "label": "Extracts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "src_s3",
+      "target": "glu_etl",
+      "label": "Extracts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "glu_etl",
+      "target": "stg_s3",
+      "label": "Loads partitioned data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "stg_s3",
+      "target": "rs_clust",
+      "label": "COPY command loading",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "rs_clust",
+      "target": "bi_qs",
+      "label": "Direct queries",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "rs_clust",
+      "target": "ml_sage",
+      "label": "Fetches training data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "iam_role",
+      "target": "glu_etl",
+      "label": "Provides access",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "kms_keys",
+      "target": "stg_s3",
+      "label": "Encrypts data",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "vpc_peer",
+      "target": "src_pg",
+      "label": "Accesses secure subnets",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "vpc_peer",
+      "target": "src_my",
+      "label": "Accesses secure subnets",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "bi_qs",
+      "target": "ml_sage",
+      "label": "Displays ML inferences",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "rs_clust",
+      "target": "cat_meta",
+      "label": "Shares catalog schema",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "glu_etl",
+      "target": "cat_meta",
+      "label": "Writes job partitions",
+      "cite": "user-stated"
+    }
+  ]
+}

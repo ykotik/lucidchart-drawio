@@ -1,0 +1,215 @@
+{
+  "pattern": "hub-radial",
+  "canvas": {
+    "w": 1600,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "okta_hub",
+      "label": "Okta Hub",
+      "cite": "user-stated"
+    },
+    {
+      "id": "mfa_prov",
+      "label": "MFA Provider",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_sf",
+      "label": "Salesforce",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_slack",
+      "label": "Slack",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_git",
+      "label": "GitHub",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_aws",
+      "label": "AWS Console",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_jira",
+      "label": "Jira",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_conf",
+      "label": "Confluence",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_zoom",
+      "label": "Zoom",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_box",
+      "label": "Box",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_snow",
+      "label": "ServiceNow",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_wd",
+      "label": "Workday",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_dd",
+      "label": "Datadog",
+      "cite": "user-stated"
+    },
+    {
+      "id": "spk_pd",
+      "label": "PagerDuty",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "okta_hub",
+      "target": "spk_sf",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "okta_hub",
+      "target": "spk_slack",
+      "label": "Authenticates OIDC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "okta_hub",
+      "target": "spk_git",
+      "label": "Authenticates OIDC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "okta_hub",
+      "target": "spk_aws",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "okta_hub",
+      "target": "spk_jira",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "okta_hub",
+      "target": "spk_conf",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "okta_hub",
+      "target": "spk_zoom",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "okta_hub",
+      "target": "spk_box",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "okta_hub",
+      "target": "spk_snow",
+      "label": "Authenticates SAML",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "okta_hub",
+      "target": "spk_wd",
+      "label": "Authenticates OIDC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "okta_hub",
+      "target": "spk_dd",
+      "label": "Authenticates OIDC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "okta_hub",
+      "target": "spk_pd",
+      "label": "Authenticates OIDC",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "mfa_prov",
+      "target": "okta_hub",
+      "label": "Pushes verification prompt",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "spk_sf",
+      "target": "okta_hub",
+      "label": "Callback redirects back",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "spk_slack",
+      "target": "okta_hub",
+      "label": "Callback redirects back",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "spk_git",
+      "target": "okta_hub",
+      "label": "Callback redirects back",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "spk_aws",
+      "target": "okta_hub",
+      "label": "Callback redirects back",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "spk_wd",
+      "target": "okta_hub",
+      "label": "Syncs employee profiles",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "okta_hub",
+      "target": "mfa_prov",
+      "label": "Requests MFA token authentication",
+      "cite": "user-stated"
+    }
+  ]
+}

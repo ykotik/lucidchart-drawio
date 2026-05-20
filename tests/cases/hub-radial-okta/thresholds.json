@@ -1,0 +1,22 @@
+{
+  "xml": {
+    "min_vertices": 14,
+    "min_edges": 19,
+    "max_duplicate_ids": 0,
+    "max_orphan_parents": 0,
+    "max_missing_edge_geometry": 0
+  },
+  "visual": {
+    "max_shape_overlaps": 0,
+    "min_contour_count": 10,
+    "max_blank_pct": 98,
+    "min_edge_lines_detected": 4
+  },
+  "content": {
+    "min_label_recall": 0.7,
+    "max_phantom_labels": 35
+  },
+  "regression": {
+    "max_pixel_diff_pct": 5.0
+  }
+}

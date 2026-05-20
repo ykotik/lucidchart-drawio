@@ -1,0 +1,208 @@
+{
+  "pattern": "pipeline",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "gcp_sql",
+      "label": "Cloud SQL DB",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_fs",
+      "label": "Firestore NoSQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_pubsub",
+      "label": "Pub/Sub Ingestion",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_gcs_r",
+      "label": "Cloud Storage Raw",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_df_b",
+      "label": "Dataflow Batch Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_df_s",
+      "label": "Dataflow Stream Job",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_dataproc",
+      "label": "Dataproc Spark Cluster",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_bq",
+      "label": "BigQuery Data Warehouse",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_gcs_p",
+      "label": "Cloud Storage Processed",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_bt",
+      "label": "Bigtable Database",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_looker",
+      "label": "Looker Dashboards",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_vertex",
+      "label": "Vertex AI Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_catalog",
+      "label": "Data Catalog Meta",
+      "cite": "user-stated"
+    },
+    {
+      "id": "gcp_functions",
+      "label": "Cloud Functions Alerts",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "gcp_sql",
+      "target": "gcp_df_b",
+      "label": "Extracts database records batch",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "gcp_fs",
+      "target": "gcp_df_s",
+      "label": "Extracts database CDC streams",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "gcp_pubsub",
+      "target": "gcp_df_s",
+      "label": "Subscribes real-time streaming",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "gcp_gcs_r",
+      "target": "gcp_dataproc",
+      "label": "Reads raw files directly",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "gcp_df_b",
+      "target": "gcp_bq",
+      "label": "Loads clean batch files warehouse",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "gcp_df_s",
+      "target": "gcp_bq",
+      "label": "Streams analytics payload warehouse",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "gcp_df_s",
+      "target": "gcp_bt",
+      "label": "Writes real-time caching records",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "gcp_dataproc",
+      "target": "gcp_gcs_p",
+      "label": "Writes spark metrics archives",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "gcp_bq",
+      "target": "gcp_looker",
+      "label": "Direct dashboards report queries",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "gcp_bq",
+      "target": "gcp_vertex",
+      "label": "Fetches ML features dataset",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "gcp_bq",
+      "target": "gcp_catalog",
+      "label": "Indexes schema column schemas",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "gcp_bq",
+      "target": "gcp_functions",
+      "label": "Query thresholds trigger pubsub",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "gcp_functions",
+      "target": "gcp_pubsub",
+      "label": "Publishes slack warnings channels",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "gcp_looker",
+      "target": "gcp_catalog",
+      "label": "Checks field governance classifications",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "gcp_gcs_p",
+      "target": "gcp_bq",
+      "label": "External tables load source link",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "gcp_df_b",
+      "target": "gcp_gcs_p",
+      "label": "Loads processed flat logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "gcp_sql",
+      "target": "gcp_gcs_r",
+      "label": "Dumps exports nightly backup files",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "gcp_fs",
+      "target": "gcp_catalog",
+      "label": "Indexes document schemas meta",
+      "cite": "user-stated"
+    }
+  ]
+}

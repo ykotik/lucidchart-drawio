@@ -1,0 +1,229 @@
+{
+  "pattern": "scope-columns",
+  "canvas": {
+    "w": 1800,
+    "h": 1000
+  },
+  "containers": [
+    {
+      "id": "vpc_cont",
+      "label": "AWS VPC",
+      "cite": "user-stated"
+    }
+  ],
+  "shapes": [
+    {
+      "id": "sub_pub",
+      "label": "Public Subnet",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sub_app",
+      "label": "Private App Subnet",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sub_data",
+      "label": "Private Data Subnet",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_route53",
+      "label": "Route 53",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_cloudfront",
+      "label": "CloudFront CDN",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_s3",
+      "label": "S3 Web Assets",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_cognito",
+      "label": "Cognito User Pool",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_alb",
+      "label": "Application Load Balancer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_nat",
+      "label": "NAT Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_bastion",
+      "label": "Bastion Host",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_ecs",
+      "label": "ECS Fargate Cluster",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_redis",
+      "label": "ElastiCache Redis",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_rds_p",
+      "label": "RDS Aurora Primary",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_rds_r",
+      "label": "RDS Aurora Replica",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_ddb",
+      "label": "DynamoDB Table",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_cw",
+      "label": "CloudWatch Logs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "aws_sns",
+      "label": "SNS Alerts",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "aws_route53",
+      "target": "aws_cloudfront",
+      "label": "DNS resolution",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "aws_cloudfront",
+      "target": "aws_s3",
+      "label": "Loads static cache",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "aws_cloudfront",
+      "target": "aws_alb",
+      "label": "Routes dynamic api requests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "aws_alb",
+      "target": "aws_ecs",
+      "label": "Targets container groups",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_4",
+      "source": "aws_ecs",
+      "target": "aws_cognito",
+      "label": "Verifies JWT signatures",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "aws_ecs",
+      "target": "aws_redis",
+      "label": "Caching query checks",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_6",
+      "source": "aws_ecs",
+      "target": "aws_rds_p",
+      "label": "Performs writes SQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "aws_ecs",
+      "target": "aws_rds_r",
+      "label": "Performs reads SQL",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "aws_ecs",
+      "target": "aws_ddb",
+      "label": "NoSQL key-value CRUD",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "aws_ecs",
+      "target": "aws_nat",
+      "label": "Outbound internet api requests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "aws_nat",
+      "target": "aws_cw",
+      "label": "Pushes flow logs metadata",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "aws_rds_p",
+      "target": "aws_rds_r",
+      "label": "Aurora storage replication",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "aws_cw",
+      "target": "aws_sns",
+      "label": "Alert thresholds trigger",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "aws_ecs",
+      "target": "aws_cw",
+      "label": "Application console logging",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "aws_bastion",
+      "target": "aws_ecs",
+      "label": "SSH secure tunneling debugs",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "aws_route53",
+      "target": "aws_cognito",
+      "label": "Secure custom domains auth",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "aws_route53",
+      "target": "aws_s3",
+      "label": "Alternative static lookup route",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "aws_s3",
+      "target": "aws_cw",
+      "label": "Storage access auditing logs",
+      "cite": "user-stated"
+    }
+  ]
+}

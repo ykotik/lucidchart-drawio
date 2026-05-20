@@ -1,0 +1,229 @@
+{
+  "pattern": "c4-component",
+  "canvas": {
+    "w": 1600,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "comp_ctrl",
+      "label": "OAuth Controller",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_tok",
+      "label": "Token Manager",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_sess",
+      "label": "Session Store",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_mfa",
+      "label": "MFA Handler",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_rbac",
+      "label": "RBAC Engine",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_audit",
+      "label": "Audit Logger",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_rate",
+      "label": "Rate Limiter",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_repo",
+      "label": "User Repository",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_hash",
+      "label": "Password Hasher",
+      "cite": "user-stated"
+    },
+    {
+      "id": "comp_saml",
+      "label": "SAML Bridge",
+      "cite": "user-stated"
+    },
+    {
+      "id": "ext_ldap",
+      "label": "LDAP Directory",
+      "cite": "corp-it"
+    },
+    {
+      "id": "ext_okta",
+      "label": "Okta IdP",
+      "cite": "external-partner"
+    },
+    {
+      "id": "api_gw",
+      "label": "API Gateway",
+      "cite": "user-stated"
+    },
+    {
+      "id": "db_user",
+      "label": "User Database",
+      "cite": "user-stated"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "api_gw",
+      "target": "comp_rate",
+      "label": "Limits incoming traffic",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "comp_rate",
+      "target": "comp_ctrl",
+      "label": "Routes clean requests",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "comp_ctrl",
+      "target": "comp_saml",
+      "label": "Delegates federated login",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "comp_saml",
+      "target": "ext_okta",
+      "label": "Redirects login",
+      "cite": "external-partner"
+    },
+    {
+      "id": "edge_4",
+      "source": "comp_ctrl",
+      "target": "comp_repo",
+      "label": "Queries local credentials",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_5",
+      "source": "comp_repo",
+      "target": "ext_ldap",
+      "label": "Fails over to directory",
+      "cite": "corp-it"
+    },
+    {
+      "id": "edge_6",
+      "source": "comp_repo",
+      "target": "db_user",
+      "label": "CRUD users",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_7",
+      "source": "comp_ctrl",
+      "target": "comp_hash",
+      "label": "Verifies pwd",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_8",
+      "source": "comp_ctrl",
+      "target": "comp_mfa",
+      "label": "Enforces OTP",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_9",
+      "source": "comp_ctrl",
+      "target": "comp_tok",
+      "label": "Generates JWT",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_10",
+      "source": "comp_ctrl",
+      "target": "comp_sess",
+      "label": "Creates session",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_11",
+      "source": "comp_ctrl",
+      "target": "comp_rbac",
+      "label": "Checks scope permissions",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_12",
+      "source": "comp_ctrl",
+      "target": "comp_audit",
+      "label": "Logs event",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_13",
+      "source": "comp_sess",
+      "target": "db_user",
+      "label": "Persists session states",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_14",
+      "source": "comp_tok",
+      "target": "comp_hash",
+      "label": "Signs payload",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "comp_mfa",
+      "target": "comp_audit",
+      "label": "Logs MFA failure",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "comp_rbac",
+      "target": "comp_repo",
+      "label": "Reads user roles",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "comp_saml",
+      "target": "comp_tok",
+      "label": "Converts SAML to JWT",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "comp_audit",
+      "target": "db_user",
+      "label": "Writes log records",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "comp_sess",
+      "target": "comp_rate",
+      "label": "Cleans expired rate limits",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_20",
+      "source": "comp_repo",
+      "target": "comp_hash",
+      "label": "Encrypts input",
+      "cite": "user-stated"
+    }
+  ]
+}

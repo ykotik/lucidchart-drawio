@@ -1,0 +1,212 @@
+{
+  "pattern": "c4-context",
+  "canvas": {
+    "w": 1600,
+    "h": 900
+  },
+  "containers": [],
+  "shapes": [
+    {
+      "id": "user_cust",
+      "label": "Customer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "user_merch",
+      "label": "Merchant",
+      "cite": "user-stated"
+    },
+    {
+      "id": "user_adm",
+      "label": "Admin",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sys_core",
+      "label": "PayFlow Platform",
+      "cite": "user-stated"
+    },
+    {
+      "id": "sys_pay",
+      "label": "Payment Processor",
+      "cite": "integration-docs"
+    },
+    {
+      "id": "sys_kyc",
+      "label": "KYC Provider",
+      "cite": "compliance-spec"
+    },
+    {
+      "id": "sys_fraud",
+      "label": "Fraud Detection",
+      "cite": "security-policy"
+    },
+    {
+      "id": "sys_bank",
+      "label": "Banking API",
+      "cite": "banking-spec"
+    },
+    {
+      "id": "sys_email",
+      "label": "Email Service",
+      "cite": "infra-spec"
+    },
+    {
+      "id": "sys_sms",
+      "label": "SMS Gateway",
+      "cite": "infra-spec"
+    },
+    {
+      "id": "sys_analytics",
+      "label": "Analytics Platform",
+      "cite": "bi-reqs"
+    },
+    {
+      "id": "sys_reg",
+      "label": "Regulatory Reporting",
+      "cite": "compliance-spec"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_0",
+      "source": "user_cust",
+      "target": "sys_core",
+      "label": "Uses app",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_1",
+      "source": "user_merch",
+      "target": "sys_core",
+      "label": "Uses portal",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_2",
+      "source": "user_adm",
+      "target": "sys_core",
+      "label": "Manages",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_3",
+      "source": "sys_core",
+      "target": "sys_pay",
+      "label": "Processes pay",
+      "cite": "integration-docs"
+    },
+    {
+      "id": "edge_4",
+      "source": "sys_core",
+      "target": "sys_kyc",
+      "label": "Verifies identity",
+      "cite": "compliance-spec"
+    },
+    {
+      "id": "edge_5",
+      "source": "sys_core",
+      "target": "sys_fraud",
+      "label": "Checks tx",
+      "cite": "security-policy"
+    },
+    {
+      "id": "edge_6",
+      "source": "sys_core",
+      "target": "sys_bank",
+      "label": "Settles funds",
+      "cite": "banking-spec"
+    },
+    {
+      "id": "edge_7",
+      "source": "sys_core",
+      "target": "sys_email",
+      "label": "Sends alert",
+      "cite": "infra-spec"
+    },
+    {
+      "id": "edge_8",
+      "source": "sys_core",
+      "target": "sys_sms",
+      "label": "Sends OTP",
+      "cite": "infra-spec"
+    },
+    {
+      "id": "edge_9",
+      "source": "sys_core",
+      "target": "sys_analytics",
+      "label": "Streams logs",
+      "cite": "bi-reqs"
+    },
+    {
+      "id": "edge_10",
+      "source": "sys_core",
+      "target": "sys_reg",
+      "label": "Submits reports",
+      "cite": "compliance-spec"
+    },
+    {
+      "id": "edge_11",
+      "source": "sys_pay",
+      "target": "sys_bank",
+      "label": "Reconciles",
+      "cite": "banking-spec"
+    },
+    {
+      "id": "edge_12",
+      "source": "sys_kyc",
+      "target": "sys_reg",
+      "label": "Audits KYC",
+      "cite": "compliance-spec"
+    },
+    {
+      "id": "edge_13",
+      "source": "sys_fraud",
+      "target": "sys_analytics",
+      "label": "Reports fraud",
+      "cite": "bi-reqs"
+    },
+    {
+      "id": "edge_14",
+      "source": "user_cust",
+      "target": "sys_pay",
+      "label": "Enters card details",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_15",
+      "source": "user_merch",
+      "target": "sys_pay",
+      "label": "Receives payouts",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_16",
+      "source": "sys_core",
+      "target": "user_cust",
+      "label": "Notifies Customer",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_17",
+      "source": "sys_core",
+      "target": "user_merch",
+      "label": "Notifies Merchant",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_18",
+      "source": "sys_core",
+      "target": "user_adm",
+      "label": "Alerts Admin",
+      "cite": "user-stated"
+    },
+    {
+      "id": "edge_19",
+      "source": "user_adm",
+      "target": "sys_analytics",
+      "label": "Views dashboard",
+      "cite": "bi-reqs"
+    }
+  ]
+}
