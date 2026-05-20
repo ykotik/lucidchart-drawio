@@ -89,6 +89,41 @@ Step 5. VALIDATE (optional but recommended for >20 shapes)
 
 See `references/plan-format.md` for the JSON plan schema.
 
+### Grounding manifest (F3) — `grounding_manifest`
+
+When `grounding_manifest: on` (default), **every** container, shape, and edge in the plan MUST include a non-empty `cite` field that traces the element to its source (file:line, doc:section, `user-stated`, `inferred from ...`, or `assumption:...`). The validator rejects any uncited entity with `G501`.
+
+Goal: no hallucinated boxes on client deliverables. Every element on the diagram is traceable back to an artifact the user can verify.
+
+Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.py` auto-detects it (or pass `--plan path/to/plan.json` explicitly).
+
+Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
+
+### Critic-Candidates-Judge loop (F6) — `critic_judge_loop`
+
+For diagrams >15 shapes (default `auto`), the skill runs an iterative refinement loop after the first pass:
+
+1. **Critic** subagent reads the .drawio + plan + validator output → numbered issue list
+2. **Three Candidate** subagents in parallel produce revised plans (conservative / aggressive / focused strategies)
+3. **Judge** subagent picks the winner
+4. Render → re-validate → repeat (max 3 iterations)
+
+Source: *See it. Say it. Sorted.* (arxiv 2508.15222). See `references/critic-judge-loop.md` for prompts and stop conditions.
+
+Turn off with `critic_judge_loop: off` in frontmatter. Set to `on` to always run regardless of shape count.
+
+### Eval harness (F7) — `eval_harness`
+
+`eval/` ships with a small regression suite (3 cases — c4-context, pipeline, swimlanes). Run before merges or model upgrades:
+
+```bash
+python3 eval/run.py                       # show metrics table
+python3 eval/run.py --against-baseline    # exit 1 if any case regressed
+python3 eval/run.py --update-baseline     # accept current scores as new baseline
+```
+
+See `eval/README.md` for the full layout and metrics tracked (Node F1, Path F1, edge crossings, orthogonality %, area utilization, grounding coverage).
+
 ## Workflow
 
 1. **Identify layout pattern** → pick from the 12 patterns below (or compose)

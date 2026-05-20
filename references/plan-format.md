@@ -24,8 +24,9 @@ paper and the arXiv DiagrammerGPT paper.
       "parent": "1",
       "label": "External Users",
       "x": 40, "y": 40, "w": 1520, "h": 820,
-      "style_key": "scope_green",        // → look up in style-dictionary.md
-      "startSize": 30
+      "style_key": "scope_green",
+      "startSize": 30,
+      "cite": "hosting.xlsx:SYS-12"            // F3 grounding — REQUIRED when grounding_manifest=on
     },
     {
       "id": "lane_a",
@@ -33,7 +34,8 @@ paper and the arXiv DiagrammerGPT paper.
       "label": "Identity",
       "x": 0, "y": 30, "w": 1520, "h": 260,
       "style_key": "lane_default",
-      "startSize": 120                    // left-aligned title strip
+      "startSize": 120,
+      "cite": "user-stated"
     }
   ],
 
@@ -42,25 +44,27 @@ paper and the arXiv DiagrammerGPT paper.
       "id": "api",
       "parent": "lane_a",
       "label": "Public API",
-      "grid_cell": { "row": 0, "col": 1 },     // logical grid placement
-      "x": 160, "y": 40,                       // computed from grid_cell (relative to parent)
+      "grid_cell": { "row": 0, "col": 1 },
+      "x": 160, "y": 40,
       "w": 160, "h": 64,
-      "style_key": "service_box",              // → mxgraph style string
-      "vendor_icon": null                      // or "aws.lambda", "azure.functions" etc.
+      "style_key": "service_box",
+      "vendor_icon": null,
+      "cite": "hla.md:§3.2 'Public API gateway'"     // F3 grounding for this shape
     }
   ],
 
   "edges": [
     {
       "id": "e_api_db",
-      "parent": "lane_a",                      // lowest common ancestor of source+target
+      "parent": "lane_a",
       "source": "api",
       "target": "db",
       "label": "SQL",
       "style_key": "edge_orthogonal_sync",
       "exit": { "x": 1, "y": 0.5 },
       "entry": { "x": 0, "y": 0.5 },
-      "waypoints": []
+      "waypoints": [],
+      "cite": "interfaces.xlsx:row 14 (api → db SQL)"  // F3 grounding for the edge itself
     }
   ],
 
@@ -101,6 +105,44 @@ paper and the arXiv DiagrammerGPT paper.
 | `waypoints` on edges | Override auto-routing for difficult crossings |
 | `legend.include` | Auto-add a legend box at the bottom-right |
 | `vendor_icon` on shapes | Looks up the icon style from shape-vocabulary |
+| `cite` on every shape / container / edge | **F3 grounding manifest — required when `grounding_manifest=on`.** See the section below. |
+
+---
+
+## F3: Grounding manifest — every entity cites a source
+
+When the skill's `grounding_manifest` feature flag is `on` (default), **every** `containers[]`, `shapes[]`, and `edges[]` entry must include a non-empty `cite` field. The validator (`scripts/validate.py`) emits `G501` ERROR for any unciteed entity.
+
+The goal: no hallucinated boxes, arrows, or labels in client-facing deliverables. Every element on the diagram traces back to an artifact the user can verify.
+
+### Citation formats
+
+Free-form string. Use the format that fits your source:
+
+| Source type | Example `cite` value |
+|---|---|
+| Spreadsheet cell or row | `hosting.xlsx:SYS-12` , `interfaces.xlsx:row 14` |
+| Document section | `hla.md:§3.2 'Public API gateway'` , `Solution Design v3.pdf:p.18` |
+| Code / config | `terraform/api.tf:147 aws_lambda_function.api` |
+| Issue tracker | `JIRA:ENT-4421` , `GitHub#1203` |
+| Direct user statement | `user-stated` (verbatim from chat / message) |
+| Inference from another element | `inferred from {hosting.xlsx:SYS-12, SYS-13}` |
+| Template default (e.g. legend box) | `template-default` |
+| Architectural assumption to challenge later | `assumption:multi-region warm DR` |
+
+### Why a `cite` field per element, not a single bibliography
+
+A central bibliography lets boxes drift. Per-element `cite` forces the model to justify every choice at the point of choice. When the validator rejects an emitted shape, the cause is immediate ("api has no cite") rather than "the bibliography is incomplete."
+
+### When `grounding_manifest=off`
+
+If turned off, `cite` is ignored. Use for sketchy exploration where source-tracing is overhead. Switch back on before any client-facing deliverable.
+
+### Validator behavior
+
+- `G501` ERROR — `<id>` has no `cite` field (or `cite` is empty / whitespace).
+- `G502` WARN — `<id>.cite == "assumption:..."` — listed for the user to confirm before delivery.
+- `G503` INFO — coverage summary at end (e.g. `Grounding: 17/17 cited, 2 assumptions, 0 missing`).
 
 ---
 
