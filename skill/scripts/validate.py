@@ -412,7 +412,9 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
         diag.warn(
             "Q401",
             f"High edge-crossing count: {n_cross} crossings over {len(edge_segments)} edges "
-            f"(threshold = max(2, edges/4) = {max(2, len(edge_segments) // 4)}) — consider auto_layout"
+            f"(threshold = max(2, edges/4) = {max(2, len(edge_segments) // 4)}) — "
+            f"run scripts/route-edges.py (F7) then re-validate; "
+            f"for structural overlaps also run scripts/elk-layout.py (F4)"
         )
 
     # ---------- Q402 orthogonality conformance ----------

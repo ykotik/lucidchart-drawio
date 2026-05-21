@@ -68,6 +68,17 @@ paper and the arXiv DiagrammerGPT paper.
     }
   ],
 
+  "corridors": [
+    {
+      "id": "h_r1_r2",
+      "axis": "h",            // "h" = horizontal band | "v" = vertical strip
+      "y": 220,               // top edge of band (canvas-absolute px)
+      "height": 40,           // min 40 px; 60 px when 2-3 edges share the corridor
+      "between": ["row_1", "row_2"],   // human label for auditing
+      "cite": "routing"       // always "routing" — accepted by grounding validator
+    }
+  ],
+
   "legend": {
     "include": true,
     "position": "bottom-right",
@@ -102,7 +113,8 @@ paper and the arXiv DiagrammerGPT paper.
 |---|---|
 | `grid_cell` on shapes | Lets you verify no two shapes claim the same cell |
 | `exit` / `entry` on edges | Forces clean routing — see `edge-routing.md` §4 |
-| `waypoints` on edges | Override auto-routing for difficult crossings |
+| `waypoints` on edges | Explicit waypoints for edges that must detour around a blocker — populated during Step 1.2 corridor planning (F7). Each entry is `{x, y}` in canvas-absolute coordinates. `scripts/route-edges.py` also writes waypoints here when it detects intersections post-ELK. |
+| `corridors[]` | **F7 edge_routing** — reserved routing bands. Add when diagram has > 15 edges. Each entry needs `id`, `axis` (`h`\|`v`), `y`+`height` (horizontal) or `x`+`width` (vertical), and `cite: "routing"`. See `routing-corridors.md` for sizing rules and pattern-specific guidance. |
 | `legend.include` | Auto-add a legend box at the bottom-right |
 | `vendor_icon` on shapes | Looks up the icon style from shape-vocabulary |
 | `cite` on every shape / container / edge | **F3 grounding manifest — required when `grounding_manifest=on`.** See the section below. |

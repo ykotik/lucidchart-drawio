@@ -21,6 +21,7 @@ The skill exposes 6 independently togglable per-diagram features via YAML frontm
 | F4 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | `references/layout-engines.md` |
 | F5 | `text_metrics` | `off` / `auto` | `auto` | `references/text-metrics.md` |
 | F6 | `font_fit` | `off` / `auto` / `grow` | `auto` | `references/font-fit.md` |
+| F7 | `edge_routing` | `off` / `script` / `auto` | `auto` | `references/routing-corridors.md` |
 
 ---
 
@@ -161,7 +162,8 @@ Output Formatting
 Layout & Geometry
 ├── F4: auto_layout       ← ELK/dot coordinate assignment
 ├── F5: text_metrics      ← pre-emit geometry lower bounds
-└── F6: font_fit          ← post-emit font scaling
+├── F6: font_fit          ← post-emit font scaling
+└── F7: edge_routing      ← obstacle-push waypoint insertion (post-ELK)
 
 Quality Assurance
 ├── F2: quality_gate      ← structural + visual metrics
@@ -185,6 +187,7 @@ Phase 2 — XML emission
 
 Phase 3 — Post-emit geometry
   F4: auto_layout           (ELK/neato coordinate rewrite)
+  F7: edge_routing          (obstacle-push waypoints — runs after F4)
   F6: font_fit              (fontSize scaling)
 
 Phase 4 — Validation & metrics
@@ -202,6 +205,8 @@ Phase 4 — Validation & metrics
 | F4 auto_layout | Zero | 10–30 s | Node.js + elkjs |
 | F5 text_metrics | +2,000–4,000 tokens | < 200 ms | Node.js (stdlib only) |
 | F6 font_fit | Zero | < 50 ms | Python (stdlib) |
+| F7 edge_routing (`auto`) | +2,000–2,500 tokens | < 500 ms script + 5–10 s LLM | Python (stdlib) |
+| F7 edge_routing (`script`) | Zero | < 500 ms | Python (stdlib) |
 
 ### Feature impact vs cost ranking
 

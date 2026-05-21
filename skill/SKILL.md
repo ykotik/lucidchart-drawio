@@ -20,6 +20,7 @@ features:
   auto_layout: auto          # off | elk | dot | auto — auto = elk when diagram has >20 vertices
   text_metrics: auto         # off | auto            — auto = measure labels, warn on overflow, apply min dims
   font_fit: auto             # off | auto | grow     — auto = shrink fontSize when text overflows cell
+  edge_routing: auto         # off | script | auto   — auto = obstacle-push when >15 edges
 ---
 
 # Lucidchart draw.io Diagram Skill (v2.1)
@@ -71,6 +72,7 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
 | `text_metrics` | `off` / `auto` | `auto` | Runs `scripts/text-metrics.js` between plan validation and XML emit. Annotates each shape/container with `text_safe.{min_width, min_height, overflow}`. LLM must apply these as geometry lower bounds. Validator emits W106/W107/W108 if emitted XML is smaller than safe dims. Zero native deps (char-table measurement). See `references/text-metrics.md`. |
 | `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell. `auto` shrinks only; `grow` also enlarges when boxes have headroom (useful after `auto_layout`). Skips edge labels and `style=text;` chrome. See `references/font-fit.md`. |
+| `edge_routing` | `off` / `script` / `auto` | `auto` | Two-layer edge routing. LLM layer: plan gains `corridors[]` and `edge.waypoints[]` fields (read `references/routing-corridors.md`). Script layer: `scripts/route-edges.py` runs after ELK, detects edge-shape AABB intersections, inserts shortest-detour waypoints. `auto` activates when diagram has > 15 edges. `script` runs the post-emit script only (zero extra LLM tokens). See `references/routing-corridors.md`. |
 
 
 ## Generation profiles
@@ -182,6 +184,13 @@ Step 1. PLAN (JSON, in scratchpad)
   → list containers, shapes, edges with parent IDs + grid cell assignments
   → validate: every shape's parent exists; no two shapes share a grid cell;
     every edge endpoint is a valid id
+Step 1.2. CORRIDOR PLANNING (when edge_routing != off AND edges > 15)
+  → read references/routing-corridors.md
+  → add corridors[] array to plan: one horizontal band between each shape row,
+    one vertical strip between each shape column — min 40 px wide/tall
+  → for any edge whose straight-line path crosses a non-endpoint shape,
+    add waypoints[] to that edge routing it through the nearest corridor
+  → re-validate: no corridor overlaps a shape AABB; corridors clear by ≥ 20 px
 Step 1.5. TEXT METRICS (when text_metrics != off)
   → node scripts/text-metrics.js diagram.plan.json --out diagram.annotated.plan.json
   → For each shape/container where text_safe.overflow == true:
@@ -198,6 +207,10 @@ Step 5. VALIDATE (optional but recommended for >20 shapes)
   → run scripts/validate.py
 Step 6. OVERLAP REMOVAL (mandatory for dense/complex diagrams)
   → run scripts/elk-layout.py <file.drawio> --engine neato to automatically resolve overlaps
+Step 6.5. EDGE ROUTING (when edge_routing != off)
+  → run scripts/route-edges.py <file.drawio>
+  → inserts waypoints around any shapes that edges still intersect post-ELK
+  → re-run scripts/validate.py to confirm Q401 crossings → 0
 ```
 
 See `references/plan-format.md` for the JSON plan schema.
@@ -336,6 +349,7 @@ Critical (read first when diagram has matching feature):
 - **edge-routing.md** — two-layer rendering, orthogonal/curved edges, waypoints, label anchor
 - **plan-format.md** — JSON layout plan schema (the planning step)
 - **font-fit.md** — adaptive `fontSize` algorithm and bounds (read when any label > 20 chars or using multi-line C4-style labels)
+- **routing-corridors.md** — corridor planning rules and `corridors[]` / `edge.waypoints[]` schema (read when `edge_routing != off` and diagram has > 15 edges)
 
 Examples & guides:
 - **prompt-examples.md** — 5 canonical prompts (C4 container, pipeline, BPMN swimlanes, ERD, multi-tenant) — copy/paste starting points
@@ -356,8 +370,9 @@ Vendor vocabularies:
 
 ## Scripts
 
-- `scripts/validate.py` — pre-flight validator (E0xx errors, W1xx warnings, Q4xx quality metrics, G5xx grounding, D6xx DiagramEval F1). Run with: `python3 scripts/validate.py <file>.drawio`
+- `scripts/validate.py` — pre-flight validator (E0xx errors, W1xx warnings, Q4xx quality metrics, G5xx grounding). Run with: `python3 scripts/validate.py <file>.drawio`
 - `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
+- `scripts/route-edges.py` — obstacle-push edge routing (honors `edge_routing` flag). Run with: `python3 scripts/route-edges.py <file>.drawio` (after elk-layout, before fit-fonts)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
 
 
