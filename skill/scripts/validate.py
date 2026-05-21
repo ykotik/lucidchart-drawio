@@ -519,8 +519,13 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
         stp = float(st.get("spacingTop", sp))
         sb = float(st.get("spacingBottom", sp))
         hdr = float(st.get("startSize", 0)) if "swimlane" in st else 0
-        avail_w = max(1.0, gw - sl - sr)
-        avail_h = max(1.0, gh - hdr - stp - sb)
+        horizontal = st.get("horizontal", "1") != "0"
+        if "swimlane" in st and not horizontal:
+            avail_w = max(1.0, gw - hdr - sl - sr)
+            avail_h = max(1.0, gh - stp - sb)
+        else:
+            avail_w = max(1.0, gw - sl - sr)
+            avail_h = max(1.0, gh - hdr - stp - sb)
         wrap = st.get("whiteSpace") == "wrap"
         lines = [_strip(p) for p in _re.split(r"<br\s*/?>|\n", value, flags=_re.IGNORECASE) if _strip(p)]
         if not lines:
