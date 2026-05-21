@@ -190,8 +190,13 @@ def fit_one_cell(cell, mode, min_size, max_size):
     # Available text area
     sl, sr, st, sb = cell_padding(style_kv)
     hdr = header_offset(style_kv)
-    avail_w = max(1.0, gw - sl - sr)
-    avail_h = max(1.0, gh - hdr - st - sb)
+    horizontal = style_kv.get("horizontal", "1") != "0"
+    if "swimlane" in style_kv and not horizontal:
+        avail_w = max(1.0, gw - hdr - sl - sr)
+        avail_h = max(1.0, gh - st - sb)
+    else:
+        avail_w = max(1.0, gw - sl - sr)
+        avail_h = max(1.0, gh - hdr - st - sb)
 
     lines = split_lines(value)
     if not lines:

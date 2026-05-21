@@ -327,6 +327,8 @@ Green (FMI internal):     swimlane;startSize=26;dashed=1;strokeColor=#2E7D32;str
 Black (vendor/external):  swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;
 Blue (cloud zone):        swimlane;startSize=26;dashed=1;strokeColor=#1565C0;strokeWidth=2;fillColor=none;fontColor=#1565C0;fontSize=12;fontStyle=1;
 Orange (regulated):       swimlane;startSize=26;dashed=1;strokeColor=#E65100;strokeWidth=2;fillColor=none;fontColor=#E65100;fontSize=12;fontStyle=1;
+Purple (GxP validated):   swimlane;startSize=26;dashed=1;strokeColor=#6A1B9A;strokeWidth=2;fillColor=none;fontColor=#6A1B9A;fontSize=12;fontStyle=1;
+Red (restricted / boundary): swimlane;startSize=26;dashed=1;strokeColor=#C62828;strokeWidth=1.5;fillColor=none;fontColor=#C62828;fontSize=12;fontStyle=1;
 ```
 
 ## Reference files (read on demand)

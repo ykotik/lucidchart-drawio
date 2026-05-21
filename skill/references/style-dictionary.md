@@ -11,10 +11,39 @@ BLACK scope (vendor SaaS / external orgs):
   swimlane;startSize=26;dashed=1;strokeColor=#424242;strokeWidth=1.5;
   fillColor=none;fontColor=#424242;fontSize=12;fontStyle=1;
 
+BLUE scope (cloud zone / AWS / Azure):
+  swimlane;startSize=26;dashed=1;strokeColor=#1565C0;strokeWidth=2;
+  fillColor=none;fontColor=#1565C0;fontSize=12;fontStyle=1;
+
+ORANGE scope (regulated / EU sovereign):
+  swimlane;startSize=26;dashed=1;strokeColor=#E65100;strokeWidth=2;
+  fillColor=none;fontColor=#E65100;fontSize=12;fontStyle=1;
+
+PURPLE scope (GxP / Part 11 validated zone):
+  swimlane;startSize=26;dashed=1;strokeColor=#6A1B9A;strokeWidth=2;
+  fillColor=none;fontColor=#6A1B9A;fontSize=12;fontStyle=1;
+
 RED scope (security boundary / restricted):
   swimlane;startSize=26;dashed=1;strokeColor=#C62828;strokeWidth=1.5;
   fillColor=none;fontColor=#C62828;fontSize=12;fontStyle=1;
 ```
+
+## DECOM (decommissioned system) styles
+
+Decommissioned / retiring systems use **grey dashed** styling — never red.
+Red is reserved for active security boundaries and auth-gap warnings.
+
+```
+DECOM shape (grey dashed):
+  rounded=1;whiteSpace=wrap;html=1;fillColor=#FAFAFA;strokeColor=#9E9E9E;
+  strokeWidth=1.5;fontSize=11;dashed=1;fontColor=#757575;
+
+DECOM edge (grey dashed):
+  edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;
+  html=1;fontSize=10;dashed=1;strokeColor=#9E9E9E;fontColor=#757575;
+```
+
+Label convention: append `[DECOM]` suffix to the shape label.
 
 ## Component fill styles
 
@@ -123,9 +152,13 @@ DASHED grey (future/planned):
 | Role | Fill | Stroke |
 |---|---|---|
 | FMI internal (green) | #E8F5E9 | #2E7D32 |
+| Cloud zone (blue) | #E3F2FD | #1565C0 |
+| Regulated / EU sovereign (orange) | #FFF3E0 | #E65100 |
+| GxP / Part 11 validated (purple) | #F3E5F5 | #6A1B9A |
 | Vendor SaaS | #FFFFFF | #757575 |
 | External partner | #EDE7F6 | #512DA8 |
-| Auth gap | #FFEBEE | #C62828 |
+| Auth gap / restricted (red) | #FFEBEE | #C62828 |
+| DECOM (grey dashed) | #FAFAFA | #9E9E9E |
 | Milestone | #FFF9C4 | #F9A825 |
 | Kafka topic | #FFF2CC | #D6B656 |
 | Sink connector | #DAE8FC | #6C8EBF |

@@ -50,8 +50,8 @@ the `startSize` value in its style:
 
 | Header position | Style fragment | Reserved area | First child starts at |
 |---|---|---|---|
-| Top (horizontal swimlane) | `horizontal=1;startSize=30` | top 30px | `y=30` |
-| Left (vertical swimlane) | `horizontal=0;startSize=120` | left 120px | `x=120` |
+| Top (vertical swimlane / column) | `horizontal=1;startSize=30` | top 30px | `y=30` |
+| Left (horizontal swimlane / row) | `horizontal=0;startSize=120` | left 120px | `x=120` |
 
 **Default for `swimlane` is `horizontal=1` (top header) with `startSize=20`** — always
 set `startSize` explicitly so you remember the offset.

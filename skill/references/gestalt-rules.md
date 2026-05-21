@@ -69,5 +69,5 @@
 - Each lane = exactly one semantic category (trust zone, cadence, tenant, domain)
 - Lanes run full-width; never leave gaps in lane rows
 - Cross-boundary edges: route horizontally, enter/exit at lane perimeter
-- Lane header width (startSize): 24–30px for horizontal lanes, 26px for vertical swimlanes
+- Lane header size (startSize): 120–200px width for left headers on horizontal lanes (rows, horizontal=0); 24–30px height for top headers on vertical lanes (columns, horizontal=1).
 - Don't put edges between shapes that share a lane through the lane boundary — keep them inside
