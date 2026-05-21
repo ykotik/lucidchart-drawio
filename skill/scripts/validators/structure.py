@@ -25,6 +25,7 @@ class StructureValidator(Validator):
     E005  edge target does not exist
     E008  vertex missing mxGeometry
     E006  XML comment inside mxGraphModel (via scan_comments)
+    E018  edge has parent="1" while a dedicated edge layer exists
     W101  shape extends beyond parent bounds
     W102  same-tier vertex overlap
     W103  child overlaps swimlane header
@@ -36,7 +37,7 @@ class StructureValidator(Validator):
     """
 
     codes = (
-        "E001", "E002", "E003", "E004", "E005", "E006", "E008",
+        "E001", "E002", "E003", "E004", "E005", "E006", "E008", "E018",
         "W101", "W102", "W103", "W104", "W105", "W121",
         "I201", "I203",
     )
@@ -142,6 +143,14 @@ class StructureValidator(Validator):
             return out
 
         layer_ids = {cid for cid, p in parents.items() if p == "0"}
+        # Also treat cells whose id signals an intended edge/icon layer as layers
+        # even when authored with parent="1" (malformed but common LLM pattern).
+        for cid, c in by_id.items():
+            if cid in ("0", "1"):
+                continue
+            lower = (cid or "").lower()
+            if ("edge" in lower or "layer" in lower or lower == "nodes") and is_vertex[cid] is False and is_edge[cid] is False:
+                layer_ids.add(cid)
 
         for cid, c in by_id.items():
             if not is_edge[cid]:
@@ -165,6 +174,42 @@ class StructureValidator(Validator):
             result.append(Diagnostic("W104", WRN,
                 f"Edge '{cid}' parent '{ep}' is not LCA '{lca}' or an ancestor of LCA "
                 f"— source '{src}' target '{tgt}'", element_id=cid))
+
+        # ---- E018 edge-layer consistency ----
+        # If a layer (parent="0") whose id contains "edge" exists, every edge
+        # with parent="1" is an error UNLESS source and target share a common
+        # container (LCA != "1") — in that case the container is the legitimate
+        # parent and the edge is correctly NOT on the dedicated edge layer.
+        edge_layer_id = None
+        for lid in layer_ids:
+            if lid and "edge" in lid.lower():
+                edge_layer_id = lid
+                break
+
+        if edge_layer_id is not None:
+            for cid, c in by_id.items():
+                if not is_edge[cid]:
+                    continue
+                if parents.get(cid) != "1":
+                    continue
+                src = c.get("source")
+                tgt = c.get("target")
+                # If endpoints share a real container ancestor (not "1"/"0"),
+                # parent="1" is structurally wrong but the edge belongs to that
+                # container, not the edge layer — skip E018 (W104 covers it).
+                shared_container = False
+                if src and tgt and src in by_id and tgt in by_id:
+                    ans_s = set([src] + ancestors(src))
+                    ans_t = [tgt] + ancestors(tgt)
+                    lca = next((a for a in ans_t if a in ans_s), None)
+                    if lca and lca not in ("0", "1") and lca not in layer_ids:
+                        shared_container = True
+                if shared_container:
+                    continue
+                result.append(Diagnostic("E018", ERR,
+                    f"edge {cid} has parent=\"1\" but edge layer "
+                    f"\"{edge_layer_id}\" exists; expected parent=\"{edge_layer_id}\"",
+                    element_id=cid))
 
         # ---- W102 same-tier vertex overlap ----
         siblings: dict[str, list[str]] = defaultdict(list)

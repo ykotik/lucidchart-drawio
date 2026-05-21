@@ -425,6 +425,85 @@ def fit_one_cell(cell, mode, layout_mode, min_size, max_size, max_grow_ratio, me
     return cur, new, cell_expanded
 
 
+_ALLOWED_SCALE = (8, 10, 11, 12, 14)
+
+
+def _snap_to_scale(size):
+    """Snap a fontSize down to the nearest allowed scale value (>= 8)."""
+    allowed = [s for s in _ALLOWED_SCALE if s <= size]
+    if not allowed:
+        return _ALLOWED_SCALE[0]
+    return max(allowed)
+
+
+def _style_signature(style):
+    """Return style string with fontSize stripped, used as uniformity bucket key."""
+    if not style:
+        return ""
+    parts = []
+    for part in style.split(";"):
+        if not part:
+            continue
+        if "=" in part:
+            k, _ = part.split("=", 1)
+            if k.strip() == "fontSize":
+                continue
+        parts.append(part)
+    sig = ";".join(parts)
+    # Coarser bucket for vendor icons: collapse all `mxgraph.<vendor>.*` shapes
+    # in the same parent into one bucket so a tier of mixed vendor shapes
+    # (cloud_sql, firestore, pubsub, ...) gets unified.
+    m = re.search(r"shape=mxgraph\.([a-z0-9_]+)\.", sig)
+    if m:
+        return f"vendor:{m.group(1)}"
+    return sig
+
+
+def uniform_fontsize(root, dry_run=False):
+    """
+    Post-pass: group vertex cells by (parent, style_signature). Within each group
+    with size variance, round all fontSize down to the minimum present, then snap
+    to allowed scale {8,10,11,12,14}. Preserves fit guarantee — never increases.
+    Returns count of cells modified.
+    """
+    groups = {}
+    for cell in root.iter("mxCell"):
+        if cell.get("vertex") != "1":
+            continue
+        style = cell.get("style", "") or ""
+        if not style:
+            continue
+        kv = parse_style(style)
+        if "fontSize" not in kv:
+            continue
+        try:
+            fs = int(float(kv["fontSize"]))
+        except (TypeError, ValueError):
+            continue
+        parent = cell.get("parent", "")
+        sig = _style_signature(style)
+        key = (parent, sig)
+        groups.setdefault(key, []).append((cell, fs))
+
+    n_changed = 0
+    for key, members in groups.items():
+        if len(members) < 2:
+            continue
+        sizes = [fs for _, fs in members]
+        if min(sizes) == max(sizes):
+            continue
+        target = _snap_to_scale(min(sizes))
+        for cell, fs in members:
+            if fs == target:
+                continue
+            if not dry_run:
+                cell.set("style", set_style_kv(cell.get("style", ""), "fontSize", str(target)))
+            n_changed += 1
+            cid = cell.get("id", "")
+            print(f"  unify  {cid:<24} {fs} → {target}  (group {key[1][:40]})")
+    return n_changed
+
+
 def resolve_layout_mode(requested, root):
     """
     Resolve --layout-mode auto → concrete mode.
@@ -460,6 +539,8 @@ def main():
     ap.add_argument("--max", type=int, default=18, dest="max_size")
     ap.add_argument("--features", default="",
                     help="Feature overrides: 'font_fit=off|auto|grow'")
+    ap.add_argument("--uniform", choices=["on", "off", "auto"], default="auto",
+                    help="Uniformity post-pass: collapse mixed fontSizes within (parent, style) groups to the minimum present. Default 'auto' = on when mode=auto.")
     ap.add_argument("--dry-run", action="store_true",
                     help="Report changes without writing")
     args = ap.parse_args()
@@ -523,8 +604,14 @@ def main():
             n_grew += 1
             print(f"  grow   {cid:<24} {old} → {new}  ({label})")
 
+    # Uniformity post-pass
+    uniform_on = (args.uniform == "on") or (args.uniform == "auto" and mode == "auto")
+    n_unified = 0
+    if uniform_on:
+        n_unified = uniform_fontsize(root, dry_run=args.dry_run)
+
     print()
-    print(f"Scanned: {n_scanned}   Expanded: {n_expanded}   Shrunk: {n_shrunk}   Grew: {n_grew}   Unchanged: {n_unchanged}")
+    print(f"Scanned: {n_scanned}   Expanded: {n_expanded}   Shrunk: {n_shrunk}   Grew: {n_grew}   Unified: {n_unified}   Unchanged: {n_unchanged}")
 
     if args.dry_run:
         print("(dry-run — no file written)")

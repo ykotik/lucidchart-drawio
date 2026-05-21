@@ -39,6 +39,8 @@ import xml.etree.ElementTree as ET
 DEFAULT_PADDING = 24
 DEFAULT_MIN_W = 160
 DEFAULT_MIN_H = 80
+DEFAULT_TARGET_UTIL = 0.80
+GROW_TRIGGER_UTIL = 0.85
 
 OK = "\033[32m✓\033[0m"
 WARN = "\033[33m⚠\033[0m"
@@ -180,10 +182,20 @@ def build_depth_map(cells: list) -> dict:
 # ---------------------------------------------------------------- main algorithm
 
 def process_model(model, padding: int, min_w: int, min_h: int,
-                  also_grow: bool, dry_run: bool, exclude_patterns: list,
-                  verbose: bool) -> tuple[int, float]:
+                  mode: str, target_util: float, dry_run: bool,
+                  exclude_patterns: list,
+                  verbose: bool) -> tuple[int, float, dict]:
     """
-    Process one mxGraphModel. Returns (containers_changed, pixels_saved).
+    Process one mxGraphModel.
+
+    mode:
+      shrink — only reduce containers tightly around children (legacy default).
+      grow   — only enlarge containers when horizontal/vertical utilization
+               exceeds GROW_TRIGGER_UTIL (85%); target target_util (default 80%).
+      auto   — grow if any container utilization >85%, else shrink.
+
+    Returns (containers_changed, pixels_delta, canvas_bounds)
+    canvas_bounds = {"max_x": float, "max_y": float} — outer extents after edit.
     """
     cells = list(iter_cells(model))
 
@@ -209,9 +221,47 @@ def process_model(model, padding: int, min_w: int, min_h: int,
     containers = [c for c in cells if is_container(c)]
 
     if not containers:
-        return 0, 0.0
+        return 0, 0.0, {"max_x": 0.0, "max_y": 0.0}
+
+    # Resolve auto: probe utilization across containers
+    if mode == "auto":
+        resolved_mode = "shrink"
+        for container in containers:
+            geo = get_geometry(container)
+            if geo is None or geo["w"] <= 0 or geo["h"] <= 0:
+                continue
+            style_kv = parse_style(container.get("style", ""))
+            start_size = get_start_size(style_kv)
+            horiz_header = is_horizontal_header(style_kv)
+            kids = [k for k in children_of.get(container.get("id", ""), [])
+                    if k.get("vertex") == "1" and k.get("id") not in ("0", "1")]
+            if not kids:
+                continue
+            xs = []
+            ys = []
+            for kid in kids:
+                kg = get_geometry(kid)
+                if kg is None:
+                    continue
+                xs.extend([kg["x"], kg["x"] + kg["w"]])
+                ys.extend([kg["y"], kg["y"] + kg["h"]])
+            if not xs:
+                continue
+            bbox_w = max(xs) - min(xs)
+            bbox_h = max(ys) - min(ys)
+            avail_w = geo["w"] - (start_size if not horiz_header else 0)
+            avail_h = geo["h"] - (start_size if horiz_header else 0)
+            util_w = (bbox_w + 2 * padding) / avail_w if avail_w > 0 else 0
+            util_h = (bbox_h + 2 * padding) / avail_h if avail_h > 0 else 0
+            if util_w > GROW_TRIGGER_UTIL or util_h > GROW_TRIGGER_UTIL:
+                resolved_mode = "grow"
+                break
+        mode = resolved_mode
+        if verbose:
+            print(f"  {INFO} auto → {mode}")
 
     # Sort deepest-first so child containers shrink before their parents
+    # For grow, also process deepest-first so nested containers cascade outward.
     depth_map = build_depth_map(cells)
     containers_sorted = sorted(
         containers,
@@ -266,48 +316,55 @@ def process_model(model, padding: int, min_w: int, min_h: int,
         if min_x == float("inf"):
             continue  # no valid child geometry
 
-        # Target size: bbox + padding on each side, plus header on the relevant axis
-        if horiz_header:
-            # top header → startSize reserved at top of content area
-            # children y coords start at 0 relative to content area (below header)
-            # but in draw.io, children y=0 is below the header already
-            target_w = (max_x - min_x) + padding * 2
-            target_h = (max_y - min_y) + padding * 2 + start_size
-        else:
-            # left header → startSize on left
-            target_w = (max_x - min_x) + padding * 2 + start_size
-            target_h = (max_y - min_y) + padding * 2
-
-        # Apply minimum container size
-        target_w = max(target_w, min_w)
-        target_h = max(target_h, min_h)
+        bbox_w = max_x - min_x
+        bbox_h = max_y - min_y
 
         cur_w = geo["w"]
         cur_h = geo["h"]
 
-        # Determine if a change is warranted
+        # Tight target = bbox + padding + header (shrink-fit baseline)
+        if horiz_header:
+            tight_w = bbox_w + padding * 2
+            tight_h = bbox_h + padding * 2 + start_size
+        else:
+            tight_w = bbox_w + padding * 2 + start_size
+            tight_h = bbox_h + padding * 2
+
+        tight_w = max(tight_w, min_w)
+        tight_h = max(tight_h, min_h)
+
         new_w = cur_w
         new_h = cur_h
 
-        if target_w < cur_w:
-            new_w = target_w
-        elif also_grow and target_w > cur_w:
-            new_w = target_w
-
-        if target_h < cur_h:
-            new_h = target_h
-        elif also_grow and target_h > cur_h:
-            new_h = target_h
+        if mode == "shrink":
+            if tight_w < cur_w:
+                new_w = tight_w
+            if tight_h < cur_h:
+                new_h = tight_h
+        elif mode == "grow":
+            # Available content space (excluding header axis)
+            avail_w = cur_w - (start_size if not horiz_header else 0)
+            avail_h = cur_h - (start_size if horiz_header else 0)
+            need_w = bbox_w + padding * 2
+            need_h = bbox_h + padding * 2
+            util_w = need_w / avail_w if avail_w > 0 else 0
+            util_h = need_h / avail_h if avail_h > 0 else 0
+            # Grow horizontally if over trigger
+            if util_w > GROW_TRIGGER_UTIL:
+                target_content_w = need_w / target_util
+                grown_w = target_content_w + (start_size if not horiz_header else 0)
+                if grown_w > cur_w:
+                    new_w = grown_w
+            if util_h > GROW_TRIGGER_UTIL:
+                target_content_h = need_h / target_util
+                grown_h = target_content_h + (start_size if horiz_header else 0)
+                if grown_h > cur_h:
+                    new_h = grown_h
 
         w_changed = abs(new_w - cur_w) > 0.5
         h_changed = abs(new_h - cur_h) > 0.5
 
         if not w_changed and not h_changed:
-            if verbose:
-                # Report if shrink would be needed but was rejected
-                if target_w > cur_w or target_h > cur_h:
-                    label = container.get("value") or cid
-                    print(f"  {WARN} Would GROW {label!r} — skipped (pass --also-grow)")
             continue
 
         pixels_saved = (cur_w * cur_h) - (new_w * new_h)
@@ -333,7 +390,18 @@ def process_model(model, padding: int, min_w: int, min_h: int,
 
         changed += 1
 
-    return changed, total_pixels_saved
+    # Compute outer bounds across top-level vertices for canvas-resize callers
+    max_x = 0.0
+    max_y = 0.0
+    for c in cells:
+        if c.get("parent") in ("1", None) and c.get("vertex") == "1":
+            g = get_geometry(c)
+            if g is None:
+                continue
+            max_x = max(max_x, g["x"] + g["w"])
+            max_y = max(max_y, g["y"] + g["h"])
+
+    return changed, total_pixels_saved, {"max_x": max_x, "max_y": max_y}
 
 
 # ---------------------------------------------------------------- CLI
@@ -355,7 +423,15 @@ def main():
     )
     ap.add_argument(
         "--also-grow", action="store_true",
-        help="Also enlarge containers that are too small for their children"
+        help="(deprecated) Alias for --mode auto; enlarges crowded containers"
+    )
+    ap.add_argument(
+        "--mode", choices=["shrink", "grow", "auto"], default="shrink",
+        help="shrink (default): tighten only; grow: enlarge crowded; auto: pick per-diagram"
+    )
+    ap.add_argument(
+        "--target-util", type=float, default=0.80, metavar="FLOAT",
+        help="Target utilization fraction when growing (default: 0.80)"
     )
     ap.add_argument(
         "--dry-run", action="store_true",
@@ -387,13 +463,18 @@ def main():
     total_changed = 0
     total_pixels = 0.0
 
+    resolved_mode = args.mode
+    if args.also_grow and args.mode == "shrink":
+        resolved_mode = "auto"
+
     for model in all_models(root):
-        n, px = process_model(
+        n, px, _bounds = process_model(
             model,
             padding=args.padding,
             min_w=min_w,
             min_h=min_h,
-            also_grow=args.also_grow,
+            mode=resolved_mode,
+            target_util=args.target_util,
             dry_run=args.dry_run,
             exclude_patterns=exclude_patterns,
             verbose=args.verbose or args.dry_run,

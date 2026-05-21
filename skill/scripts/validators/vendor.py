@@ -113,3 +113,69 @@ class VendorEnforcementValidator(Validator):
                     ))
 
         return result
+
+
+# Per-vendor geometry minimums for icon cells that carry a label
+# (label > 12 chars needs a wider cell than the bare icon size)
+VENDOR_MIN_DIMS: dict[str, dict[str, int]] = {
+    "aws":   {"min_icon_w": 76, "min_icon_h": 76, "min_label_w": 120, "long_label_chars": 12},
+    "azure": {"min_icon_w": 64, "min_icon_h": 64, "min_label_w": 120, "long_label_chars": 12},
+    "gcp":   {"min_icon_w": 60, "min_icon_h": 60, "min_label_w": 120, "long_label_chars": 12},
+}
+
+
+def _vendor_from_style(style: str) -> str | None:
+    """Return vendor name if style references a vendor shape prefix."""
+    for vendor, prefix in VENDOR_SHAPE_PREFIXES.items():
+        if prefix in style:
+            return vendor
+    return None
+
+
+def _strip_html_tags(s: str) -> str:
+    import re
+    return re.sub(r"<[^>]+>", "", s or "")
+
+
+class VendorLabelWidthValidator(Validator):
+    """W123 — vendor icon cell too narrow for its label.
+
+    For any cell whose style references mxgraph.<vendor>.*, if the visible
+    label exceeds long_label_chars characters AND the cell width is below
+    the per-vendor min_label_w, emit W123. This catches label overflow on
+    small vendor icons (e.g. 60×60 GCP icons with "Pub/Sub Ingestion" label).
+    """
+
+    codes = ("W123",)
+
+    def check(self, model, ctx: dict) -> list[Diagnostic]:
+        result: list[Diagnostic] = []
+        for cell in model.iter("mxCell"):
+            if cell.get("vertex") != "1":
+                continue
+            style = cell.get("style") or ""
+            vendor = _vendor_from_style(style)
+            if vendor is None:
+                continue
+            dims = VENDOR_MIN_DIMS.get(vendor)
+            if dims is None:
+                continue
+            label = _strip_html_tags(cell.get("value") or "").strip()
+            if len(label) <= dims["long_label_chars"]:
+                continue
+            geom = cell.find("mxGeometry")
+            if geom is None:
+                continue
+            try:
+                w = float(geom.get("width", "0") or 0)
+            except (TypeError, ValueError):
+                continue
+            if w < dims["min_label_w"]:
+                eid = cell.get("id", "<no-id>")
+                result.append(Diagnostic(
+                    "W123", WRN,
+                    f"Vendor icon '{eid}' ({vendor}) label \"{label[:40]}\" exceeds "
+                    f"available width (cell w={w:.0f}, min={dims['min_label_w']})",
+                    element_id=eid,
+                ))
+        return result

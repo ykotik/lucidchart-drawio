@@ -237,11 +237,32 @@ def _get_or_create_geom(cell):
     return geom
 
 
+def _dedupe_waypoints(points, eps=1.0):
+    """
+    Walk the waypoint list and drop any point whose (x, y) is within `eps`
+    pixels of the previously kept point. Removes degenerate consecutive
+    duplicates left behind by obstacle-push routing or bundle offsets.
+    """
+    cleaned = []
+    for p in points:
+        if not cleaned:
+            cleaned.append(p)
+            continue
+        prev = cleaned[-1]
+        if abs(p[0] - prev[0]) <= eps and abs(p[1] - prev[1]) <= eps:
+            continue
+        cleaned.append(p)
+    return cleaned
+
+
 def _set_waypoints(geom_el, waypoints):
     """Replace the <Array as='points'> child with the given waypoints list."""
+    # Always strip any existing <Array as="points"> first
     for arr in list(geom_el):
         if arr.tag == "Array" and arr.get("as") == "points":
             geom_el.remove(arr)
+    # Dedupe consecutive identical waypoints (within 1px)
+    waypoints = _dedupe_waypoints(waypoints or [], eps=1.0)
     if not waypoints:
         return
     arr = ET.SubElement(geom_el, "Array")
@@ -502,6 +523,17 @@ def process_model(model, clearance, threshold, feature_value,
                 vertex_geoms[cid] = g
 
     edges = [c for c in by_id.values() if c.get("edge") == "1"]
+
+    # Dedupe existing waypoints on every edge (cheap pass, runs always).
+    # Removes degenerate consecutive duplicates left by earlier routing runs.
+    for cell in edges:
+        existing = _existing_waypoints(cell)
+        if not existing:
+            continue
+        cleaned = _dedupe_waypoints(existing, eps=1.0)
+        if len(cleaned) != len(existing):
+            geom_el = _get_or_create_geom(cell)
+            _set_waypoints(geom_el, cleaned)
 
     # Auto threshold check
     if feature_value == "auto" and len(edges) < threshold:

@@ -17,7 +17,7 @@ import re as _re
 from .base import Diagnostic, ERR, WRN, INF, Validator
 
 # Patterns where non-orthogonal edges are intentional (radial spokes, lifeline crossings).
-Q402_EXEMPT_PATTERNS: frozenset[str] = frozenset({"hub-radial", "sequence"})
+Q402_EXEMPT_PATTERNS: frozenset[str] = frozenset({"hub-radial", "sequence", "erd-crowfoot", "uml-class"})
 
 
 # ---------------------------------------------------------------- geometry helpers
@@ -142,12 +142,31 @@ class QualityValidator(Validator):
         if not _pattern:
             _pattern = str(ctx.get("pattern", "")).strip().lower()
         if not _pattern:
-            # Last-resort: infer from well-known sentinel cell IDs.
+            # Last-resort: infer from well-known sentinel cell IDs / edge styles.
             _ids = set(by_id.keys())
             if "hub" in _ids:
                 _pattern = "hub-radial"
             elif any(cid.startswith("lifeline") for cid in _ids):
                 _pattern = "sequence"
+            else:
+                # Style-based sentinels: ERD uses entityRelationEdgeStyle;
+                # UML class uses inheritance/aggregation/composition arrows.
+                _edge_styles = " ".join(
+                    (styles[cid].get("edgeStyle", "") or "") + " " +
+                    (styles[cid].get("endArrow", "") or "") + " " +
+                    (styles[cid].get("startArrow", "") or "")
+                    for cid in by_id if is_edge[cid]
+                )
+                if "entityRelationEdgeStyle" in _edge_styles:
+                    _pattern = "erd-crowfoot"
+                elif any(a in _edge_styles for a in (
+                    "diamondThin", "block", "open", "ERmany", "ERone"
+                )) and any(
+                    "swimlane" in (styles[cid].get("shape", "") or "")
+                    or "umlClass" in (styles[cid].get("shape", "") or "")
+                    for cid in by_id if is_vertex[cid]
+                ):
+                    _pattern = "uml-class"
 
         if _pattern in Q402_EXEMPT_PATTERNS:
             result.append(Diagnostic("Q402", INF,
