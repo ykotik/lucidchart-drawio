@@ -108,6 +108,7 @@ Children inside a container use coordinates **relative to the container's top-le
 | `auto_layout` | `auto` | ELK when >20 vertices |
 | `text_metrics` | `auto` | measure labels, warn on overflow |
 | `font_fit` | `auto` | shrink fontSize on overflow |
+| `edge_routing` | `auto` | obstacle-push waypoints when >15 edges (F7) |
 
 Override per-diagram: add `<!-- lucid:feature=value -->` as first line of the source plan.
 
