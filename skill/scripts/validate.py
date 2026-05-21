@@ -560,10 +560,14 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
 #   G503 INFO  — coverage summary
 
 
-def grounding_check(plan, diag, features):
+def grounding_check(plan, plan_error, diag, features):
     if features.get("grounding_manifest", "on") != "on":
         return
-    if not plan:
+    if plan_error:
+        diag.warn("G500", f"Could not read plan: {plan_error}")
+        return
+    if plan is None:
+        diag.warn("G500", "Plan file missing (grounding manifest is active but no plan JSON found)")
         return
 
     n_cited = 0
@@ -757,9 +761,145 @@ def _collect_cells(root):
     return by_id_map, geoms_map, styles_map
 
 
+def find_lca_in_plan(source, target, parents):
+    ancestors_s = []
+    curr = source
+    while curr and curr != "1":
+        ancestors_s.append(curr)
+        curr = parents.get(curr)
+    ancestors_s.append("1")
+    
+    curr = target
+    while curr:
+        if curr in ancestors_s:
+            return curr
+        curr = parents.get(curr)
+    return "1"
+
+
+def validate_plan_only(plan_path, diag, features):
+    import json
+    try:
+        with open(plan_path) as f:
+            plan = json.load(f)
+    except (OSError, json.JSONDecodeError) as e:
+        diag.err("E007", f"Malformed JSON: {e}")
+        return
+
+    # Check unique IDs
+    ids = set()
+    containers = plan.get("containers", []) or []
+    shapes = plan.get("shapes", []) or []
+    edges = plan.get("edges", []) or []
+
+    # 1. Unique IDs check (E001)
+    for kind, items in [("container", containers), ("shape", shapes), ("edge", edges)]:
+        for item in items:
+            iid = item.get("id")
+            if not iid:
+                diag.err("E001", f"Plan {kind} is missing 'id'")
+                continue
+            if iid in ids:
+                diag.err("E001", f"Duplicate id '{iid}' in plan")
+            else:
+                ids.add(iid)
+
+    # 2. Parent checking (E003)
+    container_ids = {c.get("id") for c in containers if c.get("id")}
+    shape_ids = {s.get("id") for s in shapes if s.get("id")}
+    all_nodes = container_ids | shape_ids | {"1"}
+
+    for kind, items in [("container", containers), ("shape", shapes)]:
+        for item in items:
+            iid = item.get("id")
+            if not iid:
+                continue
+            parent = item.get("parent")
+            if not parent:
+                parent = "1"
+            if parent not in all_nodes:
+                diag.err("E003", f"Plan {kind} '{iid}' parent '{parent}' does not exist")
+
+    # 3. Edge checking (E004, E005)
+    for edge in edges:
+        eid = edge.get("id", "<no-id>")
+        source = edge.get("source")
+        target = edge.get("target")
+        parent = edge.get("parent")
+
+        if not source:
+            diag.err("E004", f"Plan edge '{eid}' has no source specified")
+        elif source not in all_nodes:
+            diag.err("E004", f"Plan edge '{eid}' source '{source}' does not exist")
+
+        if not target:
+            diag.err("E005", f"Plan edge '{eid}' has no target specified")
+        elif target not in all_nodes:
+            diag.err("E005", f"Plan edge '{eid}' target '{target}' does not exist")
+
+        if parent and parent not in all_nodes:
+            diag.err("E003", f"Plan edge '{eid}' parent '{parent}' does not exist")
+
+    # 4. Grounding manifest checks (G501, G502, G503)
+    if features.get("grounding_manifest", "on") == "on":
+        n_cited = 0
+        n_assumptions = 0
+        n_missing = 0
+        for kind, items in [("container", containers), ("shape", shapes), ("edge", edges)]:
+            for item in items:
+                iid = item.get("id", "<no-id>")
+                cite = (item.get("cite") or "").strip()
+                if not cite:
+                    diag.err("G501", f"Plan {kind} '{iid}' has no 'cite' field (grounding required)")
+                    n_missing += 1
+                else:
+                    n_cited += 1
+                    if cite.startswith("assumption:"):
+                        diag.warn("G502", f"Plan {kind} '{iid}' is an assumption: {cite[11:].strip()}")
+                        n_assumptions += 1
+        total = n_cited + n_missing
+        if total:
+            diag.info("G503", f"Plan Grounding: {n_cited}/{total} cited, {n_assumptions} assumptions, {n_missing} missing")
+
+    # 5. Grid cell collision checks (W102)
+    grid_cells = {}
+    for shape in shapes:
+        sid = shape.get("id", "<no-id>")
+        cell = shape.get("grid_cell")
+        if cell and isinstance(cell, dict):
+            row = cell.get("row")
+            col = cell.get("col")
+            if row is not None and col is not None:
+                key = (row, col)
+                if key in grid_cells:
+                    diag.warn("W102", f"Plan shape '{sid}' shares grid cell {key} with '{grid_cells[key]}'")
+                else:
+                    grid_cells[key] = sid
+
+    # 6. Build parent map & LCA check for edges (W104)
+    parent_map = {}
+    for kind, items in [("container", containers), ("shape", shapes)]:
+        for item in items:
+            iid = item.get("id")
+            parent = item.get("parent") or "1"
+            if iid:
+                parent_map[iid] = parent
+
+    for edge in edges:
+        eid = edge.get("id", "<no-id>")
+        source = edge.get("source")
+        target = edge.get("target")
+        parent = edge.get("parent")
+        if source and target and source in all_nodes and target in all_nodes:
+            lca = find_lca_in_plan(source, target, parent_map)
+            actual_parent = parent if parent else "1"
+            if actual_parent != lca:
+                diag.warn("W104", f"Plan edge '{eid}' parent '{actual_parent}' is not the lowest common ancestor '{lca}' of '{source}' and '{target}'")
+
+
 def main():
     ap = argparse.ArgumentParser(description="Validate a drawio-architect .drawio file")
-    ap.add_argument("file", help="Path to .drawio XML file")
+    ap.add_argument("file", help="Path to .drawio XML or .plan.json file")
     ap.add_argument("--mode", choices=["strict", "standard", "loose"], default="standard")
     ap.add_argument(
         "--features",
@@ -780,17 +920,23 @@ def main():
     args = ap.parse_args()
 
     features = parse_features(args.features)
+    diag = Diag()
+
+    if args.file.endswith(".plan.json"):
+        validate_plan_only(args.file, diag, features)
+        sys.exit(diag.print(args.mode))
 
     # Load plan if available (used by F3 grounding)
     plan_path = args.plan or _auto_plan_path(args.file)
     plan = None
+    plan_error = None
     if plan_path:
         import json
         try:
             with open(plan_path) as f:
                 plan = json.load(f)
         except (OSError, json.JSONDecodeError) as e:
-            print(f"WARN  G500: Could not read plan {plan_path}: {e}")
+            plan_error = f"{plan_path}: {e}"
     features["_gt_plan"] = plan
 
     # Load annotated plan for T8 text metrics check
@@ -811,7 +957,7 @@ def main():
     for model in all_models(root):
         validate_model(model, diag, features)
 
-    grounding_check(plan, diag, features)
+    grounding_check(plan, plan_error, diag, features)
 
     # T8: text metrics — needs cell index across all pages
     if features.get("text_metrics", "auto") != "off" and annotated_plan:

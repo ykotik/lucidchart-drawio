@@ -45,19 +45,18 @@ docs/
   research-validation-findings.md     — fact-check of the research report (verified URLs, corrections)
 ```
 
-## Core workflow (plan-then-emit)
+## Core workflow (plan-then-compile)
 
 Always follow this order when generating a diagram:
 
-1. **PLAN** — JSON layout plan (containers, shapes, edges with parent IDs + grid cells)
-2. **TEXT METRICS** — run `scripts/text-metrics.js` to annotate min dims; adjust plan
-3. **EMIT XML** — read matching template, fill from plan
-4. **SELF-CHECK** — pre-flight checklist (13 items in SKILL.md)
-5. **WRITE** `.drawio` file with the Write tool
-6. **VALIDATE** — `python3 scripts/validate.py <file>.drawio`
-7. **OVERLAP REMOVAL** (dense/complex) — `python3 scripts/elk-layout.py <file>.drawio --engine neato`
-
-**Never inline XML in chat. Always write a `.drawio` file.**
+1. **PLAN** — Write a JSON layout plan (`<name>.plan.json`) containing containers, shapes, edges with parent IDs, styles, and grounding citations (required).
+2. **VALIDATE PLAN** — Run pre-flight check on the plan: `python3 scripts/validate.py <name>.plan.json`
+3. **COMPILE** — Compile the plan to a `.drawio` XML diagram: `python3 scripts/compile-plan.py <name>.plan.json`
+4. **POST-PROCESS** (Optional/Dense diagrams) — Run layout and styling scripts:
+   - Overlap removal: `python3 scripts/elk-layout.py <name>.drawio --engine neato`
+   - Edge routing: `python3 scripts/route-edges.py <name>.drawio`
+   - Font fit: `python3 scripts/fit-fonts.py <name>.drawio --mode auto`
+5. **VALIDATE DIAGRAM** — Run validation on the final diagram: `python3 scripts/validate.py <name>.drawio`
 
 ## Running scripts
 
@@ -65,12 +64,13 @@ Always follow this order when generating a diagram:
 # activate venv first
 source .venv/bin/activate
 
+python3 scripts/validate.py path/to/diagram.plan.json
+python3 scripts/compile-plan.py path/to/diagram.plan.json
 python3 scripts/validate.py path/to/diagram.drawio
 python3 scripts/validate.py path/to/diagram.drawio --mode strict
 python3 scripts/elk-layout.py path/to/diagram.drawio --engine neato
 python3 scripts/elk-layout.py path/to/diagram.drawio --engine auto
 python3 scripts/fit-fonts.py path/to/diagram.drawio --mode auto
-node scripts/text-metrics.js diagram.plan.json --out diagram.annotated.plan.json
 ```
 
 ## Running tests

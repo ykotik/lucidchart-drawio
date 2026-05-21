@@ -1,12 +1,10 @@
 # JSON Layout Plan Format
 
-Before emitting any mxGraph XML, build a JSON plan. The plan is the constraint that
-keeps the XML output clean. **The plan does not need to be persisted to disk** — it
-lives in your scratchpad / thinking. But it must be built and validated **before**
-the XML is written.
+Before generating any diagram, build a JSON plan. The plan is the single source of truth that defines the structure, hierarchy, and grounding of the diagram. **The plan MUST be persisted to disk alongside the diagram** as `<name>.plan.json` (sibling to the `.drawio` file).
 
-This is the "plan-then-emit" technique documented in the AWS GenAI-DrawIO-Creator
-paper and the arXiv DiagrammerGPT paper.
+Instead of generating complex mxGraph XML manually, you write only this JSON plan, run plan-only validation, and then compile the plan using the compiler script (`scripts/compile-plan.py`) to generate the `.drawio` file. This prevents structural, syntax, layering, coordinate, and formatting errors.
+
+This is the "plan-then-compile" technique.
 
 ---
 
@@ -267,5 +265,9 @@ User: "Show a 2-lane swimlane with API → Service → DB in lane 1 and Auth Ser
 
 Note `e3.parent = "pool"` (cross-lane edge → lowest common ancestor).
 
-Now emit the XML from this plan, mapping `style_key` to the actual mxGraph style
-strings from `style-dictionary.md` and `shape-vocabulary/*.md`.
+### Diagram Compilation
+Compile the plan into a `.drawio` XML diagram by running the compiler script:
+```bash
+python3 scripts/compile-plan.py path/to/diagram.plan.json
+```
+The compiler automatically resolves styles using the style dictionary and shape vocabulary, manages XML layers (placing edges in a dedicated `edges_layer` behind shapes), structures mxGeometry, handles container-relative coordinates, shifts elements to avoid overlapping container headers, and escapes HTML characters. If grounding is enabled, it ensures all elements have citations and will fail compilation if any are missing.
