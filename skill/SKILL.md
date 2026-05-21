@@ -302,6 +302,11 @@ waypoints, label anchoring).
 | 11 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
 | 12 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
 | 13 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
+| 14 | No two edges share the same `(source, target)` pair — encode relationship type via arrow style, not duplicate edges | Labels stack pixel-perfect; invisible overlap (W109) |
+| 15 | Edges with a label have `x` or `y` ≠ 0 on `mxGeometry` when midpoint is within 20 px of any other shape AABB | Label text renders inside an adjacent shape (W109) |
+| 16 | Nodes with > 3 edges have explicit `exitX/Y` or `entryX/Y` on every connecting edge (see `edge-routing.md` §7) | Lines and labels cluster at shape centre; crossings multiply (W111) |
+| 17 | Container height = `startSize + (n × (child_h + gap)) + 60` — not copied from canvas plan height | 40–55% dead space at bottom of each container (W112) |
+| 18 | External shapes outside the primary container are wrapped in a named dashed boundary (e.g. "Internet Layer") | Shapes float without visual context, look accidental (W113) |
 
 ## Style allowlist
 
