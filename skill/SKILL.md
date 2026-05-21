@@ -8,7 +8,7 @@ description: >-
   scope-columns, swimlanes, LR pipeline, tenant-namespace, C4 context/container/component,
   ERD crow's-foot, UML class, sequence, tree-hierarchy, flowchart-DAG, BPMN, grid-matrix.
   Vendor icon vocabularies for AWS, Azure, GCP, UML, ER, BPMN. Enforces container-relative
-  coordinates, two-layer edge rendering, plan-then-compile workflow, pre-flight validation.
+  coordinates, two-layer edge rendering, plan-then-emit workflow, pre-flight validation.
   Triggers: drawio, lucidchart diagram, architecture diagram, .drawio, C4 diagram,
   swimlane diagram, pipeline diagram, ERD, class diagram, sequence diagram, BPMN,
   flowchart, org chart, tree diagram, AWS/Azure/GCP architecture, import into lucidchart.
@@ -116,13 +116,22 @@ font_fit: off
 ```
 Step 1. READ 4 references (skip layout-engines.md, gestalt-rules.md)
          container-coords.md · edge-routing.md · plan-format.md · style-dictionary.md
-Step 2. PLAN — JSON plan, no cite fields required. Save as <name>.plan.json.
-Step 3. VALIDATE PLAN — run:
-         python3 scripts/validate.py <name>.plan.json --features grounding_manifest=off
-Step 4. COMPILE — run:
-         python3 scripts/compile-plan.py <name>.plan.json --features grounding_manifest=off
-Step 5. VALIDATE DIAGRAM — run:
-         python3 scripts/validate.py <name>.drawio --features grounding_manifest=off
+Step 2. PLAN — JSON plan, no cite fields required
+Step 3. EMIT XML — bare <mxGraphModel>, apply container-relative coords, two-layer edges
+Step 4. SELF-CHECK (structural only):
+         ✅ every edge has <mxGeometry relative="1">
+         ✅ all IDs unique
+         ✅ every parent= exists
+         ✅ children use container-relative coordinates
+         ✅ cross-container edges have parent = LCA
+         ✅ no XML comments inside model
+         ✅ HTML in value is escaped
+         ✅ startSize on all swimlane containers
+         ✅ edges in layer before icon layer
+         ⚠️ style allowlist — best-effort only
+         ❌ font sizes / label fit — skipped (no text_metrics)
+Step 5. WRITE file
+Step 6. VALIDATE structural errors only (E0xx) — no Q/G metrics
 ```
 
 ### Dense diagram (> 50 elements)
@@ -164,65 +173,73 @@ draw.io accepts both formats and auto-wraps bare fragments on open. Lucidchart's
 
 > **Heads-up on existing templates:** all 15 `templates/*.drawio` files still use the wrapped form so they remain openable in any reader without re-wrapping. When the skill emits *new* diagrams, follow the `output_mode` flag.
 
-## Plan-then-Compile workflow (mandatory)
+## Plan-then-emit workflow (mandatory)
 
-Raw LLM coordinate math fails on dense diagrams, and manually generating raw mxGraph XML is highly error-prone (XML parsing errors, coordinate mismatches, layering/LCA issues).
-**Always use the compiler-driven workflow.** Instead of writing XML, you write a JSON plan (`<name>.plan.json`), run pre-flight validation on the plan, and compile it programmatically using `scripts/compile-plan.py`.
+Raw LLM coordinate math fails on dense diagrams (overlaps, edges over icons, wrong parent IDs).
+**Always plan structure before emitting XML.** The plan acts as the constraint that makes the
+XML output clean.
 
 ```
-Step 1. PLAN
-  → Design the layout and structure as a JSON plan (see references/plan-format.md)
-  → Save it directly to the workspace as `<name>.plan.json`
-Step 2. PRE-FLIGHT PLAN VALIDATION
-  → Run: python3 scripts/validate.py <name>.plan.json
-  → Fix any plan errors/warnings (duplicate IDs, missing parents, grid collisions, missing grounding citations) directly in the plan file and repeat validation until it passes clean.
-Step 3. COMPILATION
-  → Compile the JSON plan to a .drawio XML diagram by running the compiler:
-    python3 scripts/compile-plan.py <name>.plan.json
-  → The compiler automatically builds valid XML, handles container relative offsets, structures layers (putting edges in edges_layer behind shapes), resolves exit/entry ports, and fails if grounding citations are missing.
-Step 4. POST-PROCESSING (Layout / Font Fit / Routing)
-  → If diagram is dense (>20 shapes), run overlap removal:
-    python3 scripts/elk-layout.py <name>.drawio --engine neato
-  → If edge routing is enabled, run:
-    python3 scripts/route-edges.py <name>.drawio
-  → To adjust font sizes automatically on overflow, run:
-    python3 scripts/fit-fonts.py <name>.drawio --mode auto
-Step 5. VERIFY FINAL DIAGRAM
-  → Run: python3 scripts/validate.py <name>.drawio
-  → Ensure no errors (E0xx) or warnings (W1xx) remain.
+Step 1. PLAN (JSON, in scratchpad)
+  → list containers, shapes, edges with parent IDs + grid cell assignments
+  → validate: every shape's parent exists; no two shapes share a grid cell;
+    every edge endpoint is a valid id
+Step 1.2. CORRIDOR PLANNING (when edge_routing != off AND edges > 15)
+  → read references/routing-corridors.md
+  → add corridors[] array to plan: one horizontal band between each shape row,
+    one vertical strip between each shape column — min 40 px wide/tall
+  → for any edge whose straight-line path crosses a non-endpoint shape,
+    add waypoints[] to that edge routing it through the nearest corridor
+  → re-validate: no corridor overlaps a shape AABB; corridors clear by ≥ 20 px
+Step 1.5. TEXT METRICS (when text_metrics != off)
+  → node scripts/text-metrics.js diagram.plan.json --out diagram.annotated.plan.json
+  → For each shape/container where text_safe.overflow == true:
+      - Set width  = max(declared_width,  text_safe.min_width)
+      - Set height = max(declared_height, text_safe.min_height)
+      - If swimlane: update startSize = max(declared_startSize, text_safe.min_startSize)
+  → Re-check grid collisions (nodes may have grown); adjust neighbours if needed
+  → Use diagram.annotated.plan.json as the plan going forward
+Step 2. EMIT XML (read template, fill placeholders, apply plan)
+Step 3. SELF-CHECK (re-read XML before writing file)
+  → see "Pre-flight checklist" below
+Step 4. WRITE file with the Write tool
+Step 5. VALIDATE (optional but recommended for >20 shapes)
+  → run scripts/validate.py
+Step 6. OVERLAP REMOVAL (mandatory for dense/complex diagrams)
+  → run scripts/elk-layout.py <file.drawio> --engine neato to automatically resolve overlaps
+Step 6.5. EDGE ROUTING (when edge_routing != off)
+  → run scripts/route-edges.py <file.drawio>
+  → inserts waypoints around any shapes that edges still intersect post-ELK
+  → re-run scripts/validate.py to confirm Q401 crossings → 0
 ```
 
 See `references/plan-format.md` for the JSON plan schema.
 
 ### Grounding manifest (F3) — `grounding_manifest`
 
-When `grounding_manifest: on` (default), **every** container, shape, and edge in the plan MUST include a non-empty `cite` field that traces the element to its source (file:line, doc:section, `user-stated`, `inferred from ...`, or `assumption:...`). The compiler aborts compilation if any element lacks a citation, and the validator rejects any uncited entity with `G501`.
+When `grounding_manifest: on` (default), **every** container, shape, and edge in the plan MUST include a non-empty `cite` field that traces the element to its source (file:line, doc:section, `user-stated`, `inferred from ...`, or `assumption:...`). The validator rejects any uncited entity with `G501`.
 
 Goal: no hallucinated boxes on client deliverables. Every element on the diagram is traceable back to an artifact the user can verify.
 
 Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.py` auto-detects it (or pass `--plan path/to/plan.json` explicitly).
-
-If a `.drawio` file exists but its plan file is missing or needs to be reconstructed, you can use the bootstrap utility to generate it:
-```bash
-python3 scripts/bootstrap-plan.py path/to/diagram.drawio
-```
-This parses the diagram elements and outputs a `<name>.plan.json` skeleton with empty citation fields ready for grounding.
 
 Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
 
 ## Workflow
 
 1. **Identify layout pattern** → pick from the 12 patterns below (or compose)
-2. **Read the relevant template** from `templates/` as a starting skeleton or reference
+2. **Read the relevant template** from `templates/` as a starting skeleton
 3. **Read `references/container-coords.md`** if the diagram has any container/swimlane/pool
 4. **Read `references/style-dictionary.md`** for color/style constants
 5. **Read `references/gestalt-rules.md`** for spacing, density, alignment rules
 6. **Read `references/shape-vocabulary/<vendor>.md`** if using AWS/Azure/GCP/UML/ER/BPMN icons
 7. **Build the JSON plan** (see `references/plan-format.md`)
-8. **Validate the plan** → `python3 scripts/validate.py <name>.plan.json`
-9. **Compile the plan** → `python3 scripts/compile-plan.py <name>.plan.json`
-10. **Post-process (Layout & Routing)** → Run `scripts/elk-layout.py`, `scripts/route-edges.py`, or `scripts/fit-fonts.py` as needed
-11. **Validate final output** → `python3 scripts/validate.py <name>.drawio`
+8. **Validate the plan** — parents exist, no grid collisions, edge endpoints valid
+9. **Emit XML** — replace placeholders, add shapes, wire edges, apply scope styles
+10. **Self-check** — run the pre-flight checklist (below)
+11. **Write file** to workspace
+12. **Validate** (optional) — `python3 scripts/validate.py <file.drawio>`
+13. **Overlap Removal** (mandatory for dense/complex diagrams) — run `python3 scripts/elk-layout.py <file.drawio> --engine neato`
 
 ## Layout pattern selection (12 patterns)
 
@@ -302,11 +319,6 @@ waypoints, label anchoring).
 | 11 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
 | 12 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
 | 13 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
-| 14 | No two edges share the same `(source, target)` pair — encode relationship type via arrow style, not duplicate edges | Labels stack pixel-perfect; invisible overlap (W109) |
-| 15 | Edges with a label have `x` or `y` ≠ 0 on `mxGeometry` when midpoint is within 20 px of any other shape AABB | Label text renders inside an adjacent shape (W109) |
-| 16 | Nodes with > 3 edges have explicit `exitX/Y` or `entryX/Y` on every connecting edge (see `edge-routing.md` §7) | Lines and labels cluster at shape centre; crossings multiply (W111) |
-| 17 | Container height = `startSize + (n × (child_h + gap)) + 60` — not copied from canvas plan height | 40–55% dead space at bottom of each container (W112) |
-| 18 | External shapes outside the primary container are wrapped in a named dashed boundary (e.g. "Internet Layer") | Shapes float without visual context, look accidental (W113) |
 
 ## Style allowlist
 
@@ -361,7 +373,6 @@ Vendor vocabularies:
 ## Scripts
 
 - `scripts/validate.py` — pre-flight validator (E0xx errors, W1xx warnings, Q4xx quality metrics, G5xx grounding). Run with: `python3 scripts/validate.py <file>.drawio`
-- `scripts/bootstrap-plan.py` — bootstraps a `.plan.json` skeleton from an existing `.drawio` XML diagram. Run with: `python3 scripts/bootstrap-plan.py <file>.drawio`
 - `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
 - `scripts/route-edges.py` — obstacle-push edge routing (honors `edge_routing` flag). Run with: `python3 scripts/route-edges.py <file>.drawio` (after elk-layout, before fit-fonts)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`

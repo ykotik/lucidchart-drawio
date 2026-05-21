@@ -72,7 +72,7 @@ Requires a JSON plan alongside the .drawio (`<name>.plan.json`, auto-detected) o
 
 | Code | Severity | Message |
 |---|---|---|
-| `G500` | WARN | Plan file missing or could not be read (fails validation in `--mode strict`) |
+| `G500` | WARN | Could not read plan file (path/json error) |
 | `G501` | ERROR | Element `<id>` has no `cite` field |
 | `G502` | WARN | Element `<id>` is an `assumption:` (review before delivery) |
 | `G503` | INFO | Coverage summary — `N cited, M assumptions, K missing` |
