@@ -16,7 +16,9 @@
     { "id": "billing_account", "label": "BillingAccount", "cite": "user-stated" },
     { "id": "subscription", "label": "Subscription", "cite": "user-stated" },
     { "id": "invoice", "label": "Invoice", "cite": "user-stated" },
-    { "id": "audit_log", "label": "AuditLog", "cite": "user-stated" }
+    { "id": "audit_log", "label": "AuditLog", "cite": "user-stated" },
+    { "id": "task_tag", "label": "TaskTag", "cite": "user-stated" },
+    { "id": "member_role", "label": "MemberRole", "cite": "user-stated" }
   ],
   "edges": [
     { "id": "e1", "source": "org", "target": "workspace", "label": "1:N", "cite": "user-stated" },

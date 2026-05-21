@@ -235,3 +235,83 @@ See `templates/sequence.drawio` for a worked example.
 | Edge crosses an icon glyph | All in one layer; edge draws over | Use two-layer rendering (Section 1) |
 | Edge takes a weird L-shape | Auto-picked entry/exit sides | Force `exitX/entryX` explicitly |
 | Edge label far from the edge | Default label position (midpoint) overlaps another shape | Adjust label's `x` to slide along the edge, or `y` to offset perpendicular |
+
+---
+
+## 6. Label collision avoidance (W109)
+
+draw.io places an edge label at the **geometric midpoint** of the edge path. When the
+path passes near another shape, the label renders inside that shape's box.
+
+**Rule:** Always set an explicit label offset when the edge midpoint is within 20 px
+of any non-endpoint shape, or when the edge is longer than 300 px.
+
+```xml
+<!-- Push label 15 px above the line midpoint -->
+<mxCell id="e1" value="my label" edge="1" source="A" target="C" parent="1">
+  <mxGeometry relative="1" x="0" y="-15" as="geometry"/>
+</mxCell>
+
+<!-- negative y  = above the line  |  positive y = below the line      -->
+<!-- x shifts along the edge path: -0.3 = toward source, +0.3 = target -->
+```
+
+**Quick reference:**
+
+| Situation | Recommended offset |
+|---|---|
+| Long horizontal edge (> 300 px) | `y="-15"` |
+| Edge midpoint falls on an intermediate shape | `y="-20"` or `y="20"` to clear the shape |
+| Diagonal edge across quadrants | `x="-0.2" y="-15"` |
+| Two parallel edges same direction | offset one `y="-12"`, the other `y="12"` |
+
+**Duplicate (source, target) pairs are forbidden.** If two relationships exist between
+the same node pair, encode the difference via arrow style — not as two separate edges.
+One edge per unique `(source, target)` pair, maximum. Validator catches duplicates
+via W109 and the Q401 crossing count.
+
+---
+
+## 7. Port staggering for convergence nodes (W111)
+
+A **convergence node** has more than 3 connected edges. Without explicit port
+constraints every edge exits from the shape centre — labels pile up and lines cross.
+
+**Rule:** When a node has > 3 edges, assign explicit `exitX/exitY` (outgoing) or
+`entryX/entryY` (incoming) on **every** edge connected to that node.
+
+**4 outgoing edges — distribute on right side:**
+
+```xml
+<mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;exitX=1.0;exitY=0.2;exitDx=0;exitDy=0;" edge="1" .../>
+<mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;exitX=1.0;exitY=0.4;exitDx=0;exitDy=0;" edge="1" .../>
+<mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;exitX=1.0;exitY=0.6;exitDx=0;exitDy=0;" edge="1" .../>
+<mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;exitX=1.0;exitY=0.8;exitDx=0;exitDy=0;" edge="1" .../>
+```
+
+**7 outgoing edges — split bottom + right:**
+
+```xml
+<!-- bottom side: 4 edges -->
+<mxCell id="e1" style="exitX=0.2;exitY=1.0;exitDx=0;exitDy=0;" .../>
+<mxCell id="e2" style="exitX=0.4;exitY=1.0;exitDx=0;exitDy=0;" .../>
+<mxCell id="e3" style="exitX=0.6;exitY=1.0;exitDx=0;exitDy=0;" .../>
+<mxCell id="e4" style="exitX=0.8;exitY=1.0;exitDx=0;exitDy=0;" .../>
+<!-- right side: 3 edges -->
+<mxCell id="e5" style="exitX=1.0;exitY=0.25;exitDx=0;exitDy=0;" .../>
+<mxCell id="e6" style="exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;"  .../>
+<mxCell id="e7" style="exitX=1.0;exitY=0.75;exitDx=0;exitDy=0;" .../>
+```
+
+**Container auto-sizing formula.** Set container `height` from content, not from the
+canvas-level plan dimensions:
+
+```
+container_h = startSize + (n_children × (child_h + gap)) + 60
+```
+
+Example: 4 children, child_h = 50 px, gap = 20 px, startSize = 30 px:
+`container_h = 30 + (4 × 70) + 60 = 370 px`
+
+Never copy the plan's top-level `canvas.h` as a container height — that produces
+the 40–55% dead-space pattern detected by W112.

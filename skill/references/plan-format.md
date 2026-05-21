@@ -1,12 +1,10 @@
 # JSON Layout Plan Format
 
-Before emitting any mxGraph XML, build a JSON plan. The plan is the constraint that
-keeps the XML output clean. **The plan does not need to be persisted to disk** — it
-lives in your scratchpad / thinking. But it must be built and validated **before**
-the XML is written.
+Before generating any diagram, build a JSON plan. The plan is the single source of truth that defines the structure, hierarchy, and grounding of the diagram. **The plan MUST be persisted to disk alongside the diagram** as `<name>.plan.json` (sibling to the `.drawio` file).
 
-This is the "plan-then-emit" technique documented in the AWS GenAI-DrawIO-Creator
-paper and the arXiv DiagrammerGPT paper.
+Instead of generating complex mxGraph XML manually, you write only this JSON plan, run plan-only validation, and then compile the plan using the compiler script (`scripts/compile-plan.py`) to generate the `.drawio` file. This prevents structural, syntax, layering, coordinate, and formatting errors.
+
+This is the "plan-then-compile" technique.
 
 ---
 
@@ -267,5 +265,95 @@ User: "Show a 2-lane swimlane with API → Service → DB in lane 1 and Auth Ser
 
 Note `e3.parent = "pool"` (cross-lane edge → lowest common ancestor).
 
-Now emit the XML from this plan, mapping `style_key` to the actual mxGraph style
-strings from `style-dictionary.md` and `shape-vocabulary/*.md`.
+### Diagram Compilation
+Compile the plan into a `.drawio` XML diagram by running the compiler script:
+```bash
+python3 scripts/compile-plan.py path/to/diagram.plan.json
+```
+The compiler automatically resolves styles using the style dictionary and shape vocabulary, manages XML layers (placing edges in a dedicated `edges_layer` behind shapes), structures mxGeometry, handles container-relative coordinates, shifts elements to avoid overlapping container headers, and escapes HTML characters. If grounding is enabled, it ensures all elements have citations and will fail compilation if any are missing.
+
+---
+
+## Edge constraints (enforced by validator W109 / W111 / W113)
+
+### 1. Unique (source, target) pairs
+
+Each `(source, target)` combination may appear **at most once** in the `edges` array.
+Encode relationship type via the `arrow` hint and edge style — not as duplicate edges.
+
+❌ **Forbidden — same pair twice:**
+```json
+{ "id": "e1", "source": "customer", "target": "person", "label": "extends" },
+{ "id": "e2", "source": "customer", "target": "person", "label": "generalization" }
+```
+
+✅ **Correct — one edge, type in arrow style:**
+```json
+{ "id": "e1", "source": "customer", "target": "person", "label": "extends",
+  "arrow": "hollow-block", "cite": "user-stated" }
+```
+
+`arrow` hint → `endArrow` style mapping:
+
+| `arrow` value | `endArrow` style | UML meaning |
+|---|---|---|
+| `hollow-block` | `block;endFill=0` | Inheritance / generalisation |
+| `filled-diamond` | `diamondThin;endFill=1` | Composition |
+| `open-diamond` | `diamondThin;endFill=0` | Aggregation |
+| `open` | `open` | Plain association |
+| `none` | `none` | Dependency (dashed) |
+
+### 2. Convergence node annotation (W111)
+
+When a node will have > 3 edges total (in + out), add a `ports` hint so the emitter
+assigns staggered `exitX/Y` and `entryX/Y` values:
+
+```json
+{
+  "id": "ecs",
+  "label": "ECS Fargate",
+  "ports": { "out": "right-staggered", "in": "left-staggered" },
+  "cite": "user-stated"
+}
+```
+
+| `ports` value | Meaning |
+|---|---|
+| `right-staggered` | Exits along right side: `exitX=1.0`, `exitY` from 0.2 to 0.8 |
+| `left-staggered` | Entries along left side: `entryX=0.0`, `entryY` from 0.2 to 0.8 |
+| `bottom-staggered` | Exits along bottom: `exitY=1.0`, `exitX` from 0.2 to 0.8 |
+| `top-staggered` | Entries along top: `entryY=0.0`, `entryX` from 0.2 to 0.8 |
+
+### 3. Container height sizing (W112)
+
+Set each container's `h` using actual child count — **never copy the canvas plan height**:
+
+```
+container_h = startSize + (n_direct_children × (child_h + gap)) + 60
+```
+
+Example: 4 children at child_h = 50, gap = 20, startSize = 30:
+`container_h = 30 + (4 × 70) + 60 = 370 px`
+
+### 4. External shapes grouping (W113)
+
+When the plan includes a primary container (VPC, system boundary, etc.), all shapes
+outside that container **must** be wrapped in their own named dashed boundary:
+
+```json
+{
+  "containers": [
+    { "id": "vpc",        "label": "AWS VPC",        "cite": "user-stated" },
+    { "id": "inet_layer", "label": "Internet Layer",
+      "style": "dashed-boundary", "cite": "user-stated" }
+  ],
+  "shapes": [
+    { "id": "route53",    "label": "Route 53",    "parent": "inet_layer", "cite": "user-stated" },
+    { "id": "cloudfront", "label": "CloudFront",  "parent": "inet_layer", "cite": "user-stated" },
+    { "id": "cognito",    "label": "Cognito",     "parent": "inet_layer", "cite": "user-stated" }
+  ]
+}
+```
+
+Shapes directly on the canvas (`parent` omitted or `"1"`) alongside a primary container
+trigger W113. Every orphan group needs a boundary label.
