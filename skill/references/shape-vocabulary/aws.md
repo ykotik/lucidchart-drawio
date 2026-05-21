@@ -13,7 +13,17 @@ sketch=0;points=[[0,0,0],[0.25,0,0],[0.5,0,0],[0.75,0,0],[1,0,0],[0,1,0],[0.25,1
 
 Replace `<TINT>` and `<SERVICE>` per the tables below.
 
-Sizes: square icons 78×78. Label appears below.
+Sizes: square icons 78×78 with `aspect=fixed`. Label appears **below** the icon via `verticalLabelPosition=bottom`.
+
+**Label length rule**: effective label width = cell width (78px default). Labels longer than
+~10 characters will be shrunk by `fit-fonts.py` — potentially to fontSize=8, which is
+illegible. Two options:
+
+1. **Shorten the label** (preferred) — 1–2 words max: "Aurora Primary" not "RDS Aurora Primary Replica".
+2. **Widen the cell** — set `width=120` and drop `aspect=fixed` to give the label more room
+   while keeping the icon centred in the upper portion of the cell.
+
+Never rely on `fit-fonts.py` to rescue a label that is too long for a 78px cell.
 
 ---
 

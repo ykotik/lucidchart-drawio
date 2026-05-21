@@ -27,21 +27,39 @@
 
 ### Coordinate guide (1600×900 canvas)
 ```
-Hub:        x=680, y=80,  w=240, h=80     (center-top)
+Hub:        x=680, y=80,  w=240, h=80     (center-top, for small N)
 Left pods:  x=80,  y=200..500 (spacing 120px)
 Right pods: x=1160,y=200..500
 Bottom:     x=400..1100, y=700
 ```
 
+### Hub centering rules (mandatory)
+
+**Horizontal**: Hub must be horizontally centered in the scope.
+```
+hub.x = (scope.w - hub.w) / 2
+```
+
+**Vertical**: Hub must be vertically centered among all satellites (not top-anchored).
+```
+sat_top    = min y of all satellite shapes
+sat_bottom = max (y + h) of all satellite shapes
+hub.y = (sat_top + sat_bottom) / 2 - hub.h / 2
+```
+
+If any satellites extend below hub.y + hub.h, move hub.y up so at least as many
+satellites appear above the hub as below it. A hub sitting in the top third of its
+satellite band reads as a tree root, not a hub.
+
+**Spacing check**: verify after positioning that horizontal gap ≥ hub.w on both sides.
+
 ### Skeleton structure
 ```
 [SCOPE container — full width]
-  [HUB hero shape — center, full width of content area]
-  [Satellite group L — left cluster]
-    [Sat 1..N — stacked vertically, 120px apart]
-  [Satellite group R — right cluster]
-    [Sat 1..N — stacked vertically]
-  [Bottom consumers — horizontal row]
+  [HUB hero shape — horizontally centered, vertically centered among satellites]
+  [Satellite group L — left cluster, stacked vertically]
+  [Satellite group R — right cluster, stacked vertically]
+  [Bottom consumers — horizontal row, optional]
 ```
 
 ---
@@ -81,13 +99,35 @@ Row 4:       y=336, h=64
 **Flow**: Left-to-right within each lane; cross-boundary edges are vertical.
 **Examples**: Trust zone tiers, integration cadence bands (real-time / batch), network zones.
 
-### Coordinate guide (1600×1040 canvas)
+### Canvas sizing (content-driven, not fixed)
+
+Do NOT default to 1600px wide if content doesn't fill it. Size to content:
 ```
-Canvas: pageWidth=1600, pageHeight=1040
-Lane height: 120–160px each
-Lane x: 0 (full width)
-Lane y: 0, 160, 320, 480, 640, 800, 960  (increments of 160)
+lane_w = startSize + (N_shapes_in_widest_lane * cell_w) + left_margin + right_margin
+       = 120 + (N * 200) + 40 + 40   (typical)
+
+lane_h = shape_h + top_margin + bottom_margin
+       = 80 + 30 + 30 = 140px minimum; use 192px for comfortable spacing
+
+canvas_h = (N_lanes * lane_h) + legend_reserve
+legend_reserve = 120px (always reserve below last lane for legend + breathing room)
+```
+
+Example: 4 lanes × 192px + 120px legend = 888px canvas height.
+
+### Left-to-right flow rule
+
+All shapes within a lane must be ordered left-to-right by data flow direction.
+If shape B feeds shape A and B.x > A.x, swap their x positions. Backward arrows
+(right-to-left within a lane) break the reader's flow assumption.
+
+### Coordinate guide
+```
+Lane x: 0 (full width = lane_w, content-driven — see sizing above)
+Lane y: 0, lane_h, 2*lane_h, … (no gaps between lanes)
 Lane startSize (header): 120px (for left-side vertical labels)
+Shapes relative x: startSize + 30, then +cell_w increments
+Shapes relative y: (lane_h - shape_h) / 2  (vertically centered in lane)
 ```
 
 ### Lane header style
@@ -98,9 +138,9 @@ fontSize=11;fontStyle=1;
 
 ### Shapes inside lanes
 ```
-Relative x: 40, 200, 380, 560, 740 … (180px spacing)
-Relative y: 28 (centered in 80px content height)
-w: 160, h: 64
+Relative x: 150, 350, 550, 750 … (200px spacing from startSize=120 + 30px gutter)
+Relative y: (lane_h - h) / 2   (vertically centered — e.g. (192-80)/2 = 56)
+w: 160-180, h: 64-80
 ```
 
 ---
@@ -229,12 +269,41 @@ System boundary:    x=80,  y=280, w=1440, h=440 (dashed, container=1)
 External systems:   y=780, h=80, w=240, 3-up
 ```
 
+### External vs internal placement rule (mandatory)
+
+Any element described as "External" in the user prompt **must** be placed **outside** the
+system boundary container — never inside it. This includes services labelled "External",
+elements prefixed with "External:", or services that are third-party SaaS/PaaS not owned
+by the system being diagrammed.
+
+```
+CORRECT:
+  system_boundary (container)
+    └── ServiceA, ServiceB, ServiceC   ← internal containers
+  ExternalServiceX (parent="1")        ← outside boundary ✅
+
+WRONG:
+  system_boundary (container)
+    └── ServiceA, ServiceB, ExternalServiceX  ← X does not belong here ❌
+```
+
+If the prompt lists external dependencies alongside internal services in a single list,
+parse intent: if it can be reached via internet / is not deployed inside the cluster, it
+is external. When unsure, default to placing it outside.
+
 ### Shape styles
 ```
 Container (app/svc):  rounded=0;fillColor=#438DD5;strokeColor=#3C7FC0;fontColor=#FFFFFF;
 Container (db):       shape=cylinder3;backgroundOutline=1;size=15;fillColor=#438DD5;strokeColor=#3C7FC0;fontColor=#FFFFFF;
 System boundary:      rounded=0;fillColor=none;strokeColor=#0E5BA6;strokeWidth=2;dashed=1;container=1;collapsible=0;verticalAlign=top;align=left;spacingLeft=12;spacingTop=8;fontStyle=2;
+External system:      rounded=0;fillColor=#999999;strokeColor=#6C6C6C;fontColor=#FFFFFF;
 ```
+
+### Vendor icons on external systems
+
+When the prompt requests vendor icons (e.g. "Use Azure icons"), apply icons to **all**
+named services — both internal containers and external systems. Plain grey boxes without
+icons are only acceptable for non-vendor external dependencies (e.g. "Third-party API").
 
 ### Edge styles
 ```

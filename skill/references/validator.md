@@ -135,3 +135,83 @@ should use `x=240 y=40` (relative to the container), not `x=280 y=110`.
 
 The `scripts/validate.py` script should pass `--mode strict` against every template
 in `templates/`. The verification step at the end of the v2 build runs this.
+
+---
+
+## Plugin interface
+
+The validator is built on a pluggable framework in `scripts/validators/`.
+
+### Architecture
+
+```
+scripts/validators/
+  __init__.py    — REGISTRY list, @register_validator / @validates_code decorators, run_all()
+  base.py        — Validator ABC, Diagnostic dataclass, Diag accumulator
+  structure.py   — E0xx, W1xx, I2xx checks
+  quality.py     — Q4xx quality-gate metrics (F2)
+  grounding.py   — G5xx grounding manifest (F3)
+  text_checks.py — T8xx text-metrics cross-check
+```
+
+### Writing a plugin
+
+Create a Python file that imports from `validators` and defines a `Validator` subclass:
+
+```python
+# my_custom_checks.py
+from validators import register_validator, validates_code
+from validators.base import Validator, Diagnostic, WRN
+
+@register_validator
+class NoOrphanEdgesValidator(Validator):
+    codes = ("X901",)
+
+    def check(self, model, ctx: dict) -> list[Diagnostic]:
+        results = []
+        for cid, c in ctx["by_id"].items():
+            if ctx["is_edge"][cid]:
+                if not c.get("source") and not c.get("target"):
+                    results.append(Diagnostic(
+                        "X901", WRN,
+                        f"Edge '{cid}' has neither source nor target",
+                        element_id=cid,
+                    ))
+        return results
+```
+
+### Loading a plugin
+
+```bash
+python3 scripts/validate.py diagram.drawio --validator-plugin /path/to/my_custom_checks.py
+```
+
+### `Validator.check()` context keys
+
+| Key | Type | Description |
+|---|---|---|
+| `features` | `dict[str, str]` | Feature flags (e.g. `quality_gate`, `grounding_manifest`) |
+| `cells` | `list[Element]` | Raw mxCell elements for this page |
+| `by_id` | `dict[str, Element]` | id → mxCell (deduped) |
+| `parents` | `dict[str, str]` | id → parent id |
+| `is_vertex` | `dict[str, bool]` | id → vertex flag |
+| `is_edge` | `dict[str, bool]` | id → edge flag |
+| `geoms` | `dict[str, tuple]` | id → `(x,y,w,h)` or `None` |
+| `styles` | `dict[str, dict]` | id → parsed style key/value dict |
+| `_gt_plan` | `dict \| None` | Loaded plan JSON (F3 grounding) |
+| `_annotated_plan` | `dict \| None` | Annotated plan from text-metrics.js (T8) |
+| `_by_id_map` | `dict[str, dict]` | page-key → by_id (all pages, for T8) |
+| `_geoms_map` | `dict[str, dict]` | page-key → geoms (all pages, for T8) |
+| `_styles_map` | `dict[str, dict]` | page-key → styles (all pages, for T8) |
+
+### `Diagnostic` fields
+
+```python
+@dataclass
+class Diagnostic:
+    code:       str   # e.g. "E001", "Q401", "X901"
+    severity:   str   # ERR | WRN | INF  (from validators.base)
+    message:    str
+    element_id: str = ""  # id of offending cell (optional)
+    location:   str = ""  # page, line, etc. (optional)
+```

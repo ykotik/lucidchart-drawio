@@ -225,7 +225,51 @@ See `templates/sequence.drawio` for a worked example.
 
 ---
 
-## 10. Common edge bugs
+## 10. Retry contract — `_route_with_retry` (route-edges.py)
+
+`route-edges.py` calls `_route_with_retry(p1, p2, blocker_aabbs, max_iter=4)`
+for every edge that has at least one blocking shape on its straight-line path.
+
+**Algorithm:**
+
+1. First pass: walk blocker list in path order; insert one `_shortest_detour`
+   waypoint per blocker hit (same as the original single-pass logic).
+2. Retry loop: walk every resulting sub-segment against the **full** blocker list.
+   On any hit, insert one detour waypoint at that position and restart the walk.
+3. Repeat until no sub-segment hits a blocker **or** `max_iter` extra waypoints
+   have been inserted (whichever comes first).
+
+**Bounds:**
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `max_iter` | `4` | Maximum *additional* waypoints inserted during retry. Total waypoints for one edge ≤ `len(blockers) + 4`. |
+
+**Fallback behavior:**
+
+When `max_iter` is exhausted and blockers still remain, `_route_with_retry`
+returns `exhausted=True`. `process_model` writes the best waypoint set found
+so far (partial improvement) and emits **W110**:
+
+```
+WARN W110: edge '<label>' — detour did not fully clear all blockers
+           after N waypoint(s) (diagram may be too dense — consider auto_layout=elk)
+```
+
+The edge is counted in the `routing.retries_used` summary statistic printed by
+`route-edges.py` at the end of each run:
+
+```
+route-edges: fixed 7 edge(s), routing.retries_used=3, 1 partially blocked (see W110 warnings above) → diagram.drawio
+```
+
+**W110 semantics:** the edge *is* written (with partial detour); only a
+subsequent `auto_layout=elk` pass can guarantee full clearance for pathologically
+dense diagrams.
+
+---
+
+## 11. Common edge bugs
 
 | Bug | Cause | Fix |
 |---|---|---|

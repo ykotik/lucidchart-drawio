@@ -152,6 +152,69 @@ def _shortest_detour(p1, p2, aabb):
     return min(candidates, key=cost)
 
 
+def _route_with_retry(p1, p2, blocker_aabbs, max_iter=4):
+    """
+    Build a waypoint list from p1 to p2 that avoids all blocker_aabbs.
+
+    Strategy: walk the current path segment-by-segment; whenever a segment
+    still hits a blocker, insert a detour waypoint and re-check the resulting
+    sub-segments against the *full* blocker list.  Bound at max_iter total
+    inserted waypoints.
+
+    Returns (waypoints, retries_used, exhausted):
+        waypoints    — List[Point] (may be empty when no blockers hit)
+        retries_used — int, number of extra waypoints inserted beyond the
+                       first-pass ones (i.e. iterations consumed by retry)
+        exhausted    — True when max_iter was reached and blockers remain
+    """
+    # Build initial path: one waypoint per blocker encountered in order
+    # from p1, using the existing single-pass strategy.
+    waypoints = []
+    cur = p1
+    for aabb in blocker_aabbs:
+        if _segment_hits_aabb(cur, p2, aabb):
+            wp = _shortest_detour(cur, p2, aabb)
+            waypoints.append(wp)
+            cur = wp
+
+    retries_used = 0
+    exhausted = False
+
+    # Iterative retry: walk every sub-segment of the current path and check
+    # it against ALL blockers.  If any sub-segment still hits, insert one
+    # more detour waypoint at that position and restart the walk.
+    iteration = 0
+    while iteration < max_iter:
+        path = [p1] + waypoints + [p2]
+        inserted = False
+        for i in range(len(path) - 1):
+            seg_a, seg_b = path[i], path[i + 1]
+            for aabb in blocker_aabbs:
+                if _segment_hits_aabb(seg_a, seg_b, aabb):
+                    wp = _shortest_detour(seg_a, seg_b, aabb)
+                    waypoints.insert(i, wp)
+                    retries_used += 1
+                    inserted = True
+                    break
+            if inserted:
+                break
+        if not inserted:
+            break  # all segments clear
+        iteration += 1
+    else:
+        # Check if blockers remain after exhausting iterations
+        path = [p1] + waypoints + [p2]
+        for i in range(len(path) - 1):
+            for aabb in blocker_aabbs:
+                if _segment_hits_aabb(path[i], path[i + 1], aabb):
+                    exhausted = True
+                    break
+            if exhausted:
+                break
+
+    return waypoints, retries_used, exhausted
+
+
 # ── XML patching ─────────────────────────────────────────────────────────────
 
 def _get_or_create_geom(cell):
@@ -184,12 +247,15 @@ def _set_waypoints(geom_el, waypoints):
 
 def process_model(model, clearance, threshold, feature_value):
     """
-    Process one mxGraphModel. Returns (fixed, skipped_dense) counts.
-    fixed        — edges that had waypoints inserted.
-    skipped      — edges that still intersect after detour (logged as warnings).
+    Process one mxGraphModel.
+
+    Returns (fixed, skipped, total_retries):
+        fixed         — edges that had waypoints inserted.
+        skipped       — edges that still intersect after retry exhaustion (W110).
+        total_retries — sum of routing.retries_used across all processed edges.
     """
     if feature_value == "off":
-        return 0, 0
+        return 0, 0, 0
 
     by_id, parents = _collect_cells(model)
     abs_cache = {}
@@ -206,10 +272,11 @@ def process_model(model, clearance, threshold, feature_value):
 
     # Auto threshold check
     if feature_value == "auto" and len(edges) < threshold:
-        return 0, 0
+        return 0, 0, 0
 
     fixed = 0
     skipped = 0
+    total_retries = 0
 
     for cell in edges:
         src_id = cell.get("source")
@@ -225,30 +292,27 @@ def process_model(model, clearance, threshold, feature_value):
         p1 = (sg[0] + sg[2] / 2, sg[1] + sg[3] / 2)
         p2 = (tg[0] + tg[2] / 2, tg[1] + tg[3] / 2)
 
-        # Collect intersecting blocker shapes
-        blockers = []
+        # Collect intersecting blocker shapes (sorted by distance from p1)
+        blocker_aabbs = []
         for vid, vg in vertex_geoms.items():
             if vid in (src_id, tgt_id):
                 continue
             aabb = _expand(vg[0], vg[1], vg[2], vg[3], clearance)
             if _segment_hits_aabb(p1, p2, aabb):
-                # Sort by distance from p1 so we process in path order
                 mid = (vg[0] + vg[2] / 2, vg[1] + vg[3] / 2)
-                blockers.append((_manhattan(p1, mid), aabb))
+                blocker_aabbs.append((_manhattan(p1, mid), aabb))
 
-        if not blockers:
+        if not blocker_aabbs:
             continue
 
-        blockers.sort()
+        blocker_aabbs.sort()
+        sorted_aabbs = [aabb for _, aabb in blocker_aabbs]
 
-        # Build waypoint list by detouring around each blocker in order
-        waypoints = []
-        cur = p1
-        for _, aabb in blockers:
-            if _segment_hits_aabb(cur, p2, aabb):
-                wp = _shortest_detour(cur, p2, aabb)
-                waypoints.append(wp)
-                cur = wp
+        # Iterative retry routing
+        waypoints, retries_used, exhausted = _route_with_retry(
+            p1, p2, sorted_aabbs, max_iter=4
+        )
+        total_retries += retries_used
 
         if not waypoints:
             continue
@@ -257,21 +321,14 @@ def process_model(model, clearance, threshold, feature_value):
         _set_waypoints(geom_el, waypoints)
         fixed += 1
 
-        # Verify the detour actually cleared the blockers (log if not)
-        still_blocked = any(
-            _segment_hits_aabb(waypoints[i] if i > 0 else p1,
-                               waypoints[i + 1] if i + 1 < len(waypoints) else p2,
-                               aabb)
-            for i, (_, aabb) in enumerate(blockers)
-            if i < len(waypoints)
-        )
-        if still_blocked:
+        if exhausted:
             skipped += 1
             label = cell.get("value", cell.get("id", "?"))
             print(f"  WARN W110: edge '{label}' — detour did not fully clear all blockers "
+                  f"after {4 + retries_used} waypoint(s) "
                   f"(diagram may be too dense — consider auto_layout=elk)", file=sys.stderr)
 
-    return fixed, skipped
+    return fixed, skipped, total_retries
 
 
 # ── main ─────────────────────────────────────────────────────────────────────
@@ -312,11 +369,13 @@ def main():
     root = tree.getroot()
     total_fixed = 0
     total_skipped = 0
+    total_retries = 0
 
     for model in root.iter("mxGraphModel"):
-        f, s = process_model(model, args.clearance, args.threshold, feature_value)
+        f, s, r = process_model(model, args.clearance, args.threshold, feature_value)
         total_fixed += f
         total_skipped += s
+        total_retries += r
 
     if total_fixed == 0:
         print(f"route-edges: 0 intersections found — {args.input} unchanged")
@@ -324,12 +383,15 @@ def main():
 
     if args.dry_run:
         print(f"route-edges [dry-run]: would fix {total_fixed} edge(s) "
-              f"({total_skipped} partially blocked) in {args.input}")
+              f"({total_skipped} partially blocked, {total_retries} retry waypoints) "
+              f"in {args.input}")
         return
 
     out_path = args.output or args.input
     tree.write(out_path, encoding="unicode", xml_declaration=False)
     msg = f"route-edges: fixed {total_fixed} edge(s)"
+    if total_retries:
+        msg += f", routing.retries_used={total_retries}"
     if total_skipped:
         msg += f", {total_skipped} partially blocked (see W110 warnings above)"
     msg += f" → {out_path}"

@@ -171,8 +171,33 @@ function parseLabel(raw, defaultFontSize, defaultBold) {
 
 // ─── char-table measurement ──────────────────────────────────────────────────
 
+// CJK / emoji codepoint ranges → width factor relative to fontSize.
+// A factor of 1.0 means the glyph is ~1 em wide (square CJK cell).
+// A factor of 1.2 means the emoji is slightly wider than 1 em.
+// We store as (factor * 11) so the existing (fontSize/11) scale applies.
+const CJK_RANGES = [
+  // [lo, hi, factor * 11]
+  [0x3040, 0x309F, 11.0],   // Hiragana
+  [0x30A0, 0x30FF, 11.0],   // Katakana
+  [0x3400, 0x4DBF, 11.0],   // CJK Extension A
+  [0x4E00, 0x9FFF, 11.0],   // CJK Unified Ideographs
+  [0xAC00, 0xD7AF, 11.0],   // Hangul Syllables
+  [0xFF00, 0xFFEF, 11.0],   // Fullwidth Forms
+  [0x2600, 0x27BF, 13.2],   // Misc symbols / Dingbats (emoji-like)
+  [0x1F300, 0x1F9FF, 13.2], // Emoji (Misc Symbols and Pictographs, Transport, etc.)
+];
+
+function cjkBase(cp) {
+  for (const [lo, hi, base] of CJK_RANGES) {
+    if (cp >= lo && cp <= hi) return base;
+  }
+  return null;
+}
+
 function charWidth(ch, fontSize, bold) {
-  const base = ARIAL_11_WIDTHS[ch] ?? ARIAL_11_WIDTHS.default;
+  const cp = ch.codePointAt(0);
+  const cjk = cjkBase(cp);
+  const base = cjk !== null ? cjk : (ARIAL_11_WIDTHS[ch] ?? ARIAL_11_WIDTHS.default);
   return base * (fontSize / 11) * (bold ? 1.08 : 1.0);
 }
 
@@ -355,6 +380,9 @@ function annotatePlan(plan, useCanvas) {
   for (const kind of ['shapes', 'containers']) {
     for (const el of annotated[kind] || []) {
       el.text_safe = analyzeElement(el, useCanvas);
+      // Convenience aliases for fit-fonts.py --metrics lookup (keyed by el.id)
+      el.text_safe.min_w = el.text_safe.min_width;
+      el.text_safe.min_h = el.text_safe.min_height;
     }
   }
   return annotated;

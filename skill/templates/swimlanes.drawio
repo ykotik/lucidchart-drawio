@@ -1,70 +1,67 @@
-<mxfile host="app.diagrams.net" type="device" version="24.0.0">
-  <diagram name="TEMPLATE — Horizontal Swimlanes" id="tpl-swim">
-    <mxGraphModel dx="1600" dy="1040" grid="1" gridSize="24" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1040" math="0" shadow="0">
-      <root>
-        <mxCell id="0"/>
-        <mxCell id="1" parent="0"/>
+<?xml version="1.0" encoding="UTF-8"?>
+<mxGraphModel dx="1600" dy="1040" grid="1" gridSize="24" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1040" math="0" shadow="0">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
 
-        <mxCell id="lane1" value="Lane 1 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="0" y="0" width="1600" height="192" as="geometry"/>
-        </mxCell>
-        <mxCell id="l1s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=3;fontSize=13;fontStyle=1;" vertex="1" parent="lane1">
-          <mxGeometry x="150" y="28" width="200" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l1s2" value="Shape 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="lane1">
-          <mxGeometry x="390" y="28" width="200" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l1s3" value="Shape 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane1">
-          <mxGeometry x="630" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l1s4" value="Shape 4" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane1">
-          <mxGeometry x="850" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
+    <mxCell id="lane1" value="Lane 1 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="1600" height="192" as="geometry"/>
+    </mxCell>
+    <mxCell id="l1s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#2E7D32;strokeWidth=3;fontSize=13;fontStyle=1;" vertex="1" parent="lane1">
+      <mxGeometry x="150" y="28" width="200" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l1s2" value="Shape 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=2;fontSize=12;fontStyle=1;" vertex="1" parent="lane1">
+      <mxGeometry x="390" y="28" width="200" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l1s3" value="Shape 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane1">
+      <mxGeometry x="630" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l1s4" value="Shape 4" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F5E9;strokeColor=#2E7D32;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane1">
+      <mxGeometry x="850" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
 
-        <mxCell id="lane2" value="Lane 2 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#FAFAFA;strokeColor=#757575;strokeWidth=1.5;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="0" y="192" width="1600" height="192" as="geometry"/>
-        </mxCell>
-        <mxCell id="l2s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
-          <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l2s2" value="Shape 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
-          <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l2s3" value="Shape 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
-          <mxGeometry x="590" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
+    <mxCell id="lane2" value="Lane 2 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#FAFAFA;strokeColor=#757575;strokeWidth=1.5;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="192" width="1600" height="192" as="geometry"/>
+    </mxCell>
+    <mxCell id="l2s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
+      <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l2s2" value="Shape 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
+      <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l2s3" value="Shape 3" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#757575;strokeWidth=1;fontSize=11;" vertex="1" parent="lane2">
+      <mxGeometry x="590" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
 
-        <mxCell id="lane3" value="Lane 3 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#FFF9C4;strokeColor=#F9A825;strokeWidth=1.5;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="0" y="384" width="1600" height="192" as="geometry"/>
-        </mxCell>
-        <mxCell id="l3s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane3">
-          <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l3s2" value="Shape 2&#xa;⚠ Auth Gap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane3">
-          <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
+    <mxCell id="lane3" value="Lane 3 — [Zone / Tier Name]" style="swimlane;startSize=120;horizontal=0;fillColor=#FFF9C4;strokeColor=#F9A825;strokeWidth=1.5;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="384" width="1600" height="192" as="geometry"/>
+    </mxCell>
+    <mxCell id="l3s1" value="Shape 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF9C4;strokeColor=#F9A825;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane3">
+      <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l3s2" value="Shape 2&#xa;&#x26a0; Auth Gap" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEBEE;strokeColor=#C62828;strokeWidth=1.5;fontSize=11;" vertex="1" parent="lane3">
+      <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
 
-        <mxCell id="lane4" value="Lane 4 — [External / Partner Zone]" style="swimlane;startSize=120;horizontal=0;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="0" y="576" width="1600" height="192" as="geometry"/>
-        </mxCell>
-        <mxCell id="l4s1" value="Partner 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="lane4">
-          <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
-        <mxCell id="l4s2" value="Partner 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="lane4">
-          <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
-        </mxCell>
+    <mxCell id="lane4" value="Lane 4 — [External / Partner Zone]" style="swimlane;startSize=120;horizontal=0;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="576" width="1600" height="192" as="geometry"/>
+    </mxCell>
+    <mxCell id="l4s1" value="Partner 1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="lane4">
+      <mxGeometry x="150" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="l4s2" value="Partner 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#EDE7F6;strokeColor=#512DA8;strokeWidth=1;fontSize=11;" vertex="1" parent="lane4">
+      <mxGeometry x="370" y="28" width="180" height="80" as="geometry"/>
+    </mxCell>
 
-        <mxCell id="e_l1_l2" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;strokeColor=#2E7D32;strokeWidth=1.5;" edge="1" source="l1s2" target="l2s1" parent="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_l2_l3" value="event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="l2s2" target="l3s1" parent="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
-        <mxCell id="e_l1_l4" value="EDI / API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;dashed=1;" edge="1" source="l1s1" target="l4s1" parent="1">
-          <mxGeometry relative="1" as="geometry"/>
-        </mxCell>
+    <mxCell id="e_l1_l2" value="protocol" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;strokeColor=#2E7D32;strokeWidth=1.5;" edge="1" source="l1s2" target="l2s1" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l2_l3" value="event" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;" edge="1" source="l2s2" target="l3s1" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="e_l1_l4" value="EDI / API" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;fontSize=10;dashed=1;" edge="1" source="l1s1" target="l4s1" parent="1">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
 
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>
+  </root>
+</mxGraphModel>

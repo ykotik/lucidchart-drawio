@@ -71,76 +71,26 @@ The skill's behavior is controlled by the `features:` block in the YAML frontmat
 | `grounding_manifest` | `on` / `off` | `on` | Every node/edge in the plan must include a non-empty `source` field. Validator rejects orphans. |
 | `auto_layout` | `off` / `elk` / `dot` / `auto` | `auto` | Replaces LLM-emitted coords with ELK Layered (preferred) or Graphviz dot output. `auto` runs ELK only when the diagram has >20 vertices (LLM coords are usually clean below that). |
 | `text_metrics` | `off` / `auto` | `auto` | Runs `scripts/text-metrics.js` between plan validation and XML emit. Annotates each shape/container with `text_safe.{min_width, min_height, overflow}`. LLM must apply these as geometry lower bounds. Validator emits W106/W107/W108 if emitted XML is smaller than safe dims. Zero native deps (char-table measurement). See `references/text-metrics.md`. |
-| `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell. `auto` shrinks only; `grow` also enlarges when boxes have headroom (useful after `auto_layout`). Skips edge labels and `style=text;` chrome. See `references/font-fit.md`. |
+| `font_fit` | `off` / `auto` / `grow` | `auto` | Lightweight post-processor: shrinks `fontSize` when label text overflows its cell, and (in non-elk layout modes) expands cells up to `--max-grow-ratio` before shrinking fonts. `auto` shrinks only; `grow` also enlarges. Works with all `auto_layout` modes — no ELK dependency. Pass `--layout-mode` to communicate upstream layout state. See `references/font-fit.md`. |
 | `edge_routing` | `off` / `script` / `auto` | `auto` | Two-layer edge routing. LLM layer: plan gains `corridors[]` and `edge.waypoints[]` fields (read `references/routing-corridors.md`). Script layer: `scripts/route-edges.py` runs after ELK, detects edge-shape AABB intersections, inserts shortest-detour waypoints. `auto` activates when diagram has > 15 edges. `script` runs the post-emit script only (zero extra LLM tokens). See `references/routing-corridors.md`. |
 
+See `references/feature-matrix.md` for compatibility rules and invalid-combination examples (F001–F007).
+
+---
 
 ## Generation profiles
 
-Use the profile that matches the situation. Override any flag per-diagram with `<!-- lucid:feature=value -->` on the first line of the source plan.
+Pick the profile that matches the situation. Override any flag per-diagram with `<!-- lucid:feature=value -->` on the first line of the source plan.
 
-### Production (default)
+| Profile | When to use | Pipeline |
+|---|---|---|
+| **production** (default) | Client deliverables, team docs, regulated diagrams | plan → text-metrics → emit → validate → elk → route-edges → fit-fonts → re-validate |
+| **draft** | Exploration, rough ideation (opt-in only) | plan → emit → validate (structural only) |
+| **dense** | > 50 elements; force ELK + grow-mode fonts | production + `--engine elk` + `fit-fonts --mode grow` |
 
-All features on. Use for client deliverables, team documentation, regulated diagrams.
+Step-by-step commands for each profile: see [`references/workflow-deep.md`](references/workflow-deep.md).
 
-```yaml
-output_mode: auto
-quality_gate: on
-grounding_manifest: on
-auto_layout: auto
-text_metrics: auto
-font_fit: auto
-```
-
-~93K tokens · ~80–180 s end-to-end for a 50–60 element diagram.
-
-### Fast draft
-
-For exploration and rough ideation. Skips grounding, text measurement, layout engine, and quality metrics. Produces structurally valid XML (correct parent IDs, container-relative coords, edge geometry) but without cite traceability, label-fit guarantees, or auto-layout.
-
-**Switch back to production before any delivery.**
-
-```yaml
-output_mode: auto
-quality_gate: off
-grounding_manifest: off
-auto_layout: off
-text_metrics: off
-font_fit: off
-```
-
-~58K tokens · ~50–110 s (~37% faster than production).
-
-**Fast draft workflow — condensed steps:**
-
-```
-Step 1. READ 4 references (skip layout-engines.md, gestalt-rules.md)
-         container-coords.md · edge-routing.md · plan-format.md · style-dictionary.md
-Step 2. PLAN — JSON plan, no cite fields required
-Step 3. EMIT XML — bare <mxGraphModel>, apply container-relative coords, two-layer edges
-Step 4. SELF-CHECK (structural only):
-         ✅ every edge has <mxGeometry relative="1">
-         ✅ all IDs unique
-         ✅ every parent= exists
-         ✅ children use container-relative coordinates
-         ✅ cross-container edges have parent = LCA
-         ✅ no XML comments inside model
-         ✅ HTML in value is escaped
-         ✅ startSize on all swimlane containers
-         ✅ edges in layer before icon layer
-         ⚠️ style allowlist — best-effort only
-         ❌ font sizes / label fit — skipped (no text_metrics)
-Step 5. WRITE file
-Step 6. VALIDATE structural errors only (E0xx) — no Q/G metrics
-```
-
-### Dense diagram (> 50 elements)
-
-Force ELK regardless of vertex count; grow fonts after ELK expands shapes.
-
-```
-<!-- lucid:auto_layout=elk lucid:font_fit=grow -->
-```
+**Always default to `production`.** Use `draft` only when the user says "draft", "sketch", "quick", or sets `<!-- lucid:quality_gate=off -->`. Switch back to `production` before any delivery.
 
 ---
 
@@ -173,95 +123,7 @@ draw.io accepts both formats and auto-wraps bare fragments on open. Lucidchart's
 
 > **Heads-up on existing templates:** all 15 `templates/*.drawio` files still use the wrapped form so they remain openable in any reader without re-wrapping. When the skill emits *new* diagrams, follow the `output_mode` flag.
 
-## Plan-then-emit workflow (mandatory)
-
-Raw LLM coordinate math fails on dense diagrams (overlaps, edges over icons, wrong parent IDs).
-**Always plan structure before emitting XML.** The plan acts as the constraint that makes the
-XML output clean.
-
-```
-Step 1. PLAN (JSON, in scratchpad)
-  → list containers, shapes, edges with parent IDs + grid cell assignments
-  → validate: every shape's parent exists; no two shapes share a grid cell;
-    every edge endpoint is a valid id
-Step 1.2. CORRIDOR PLANNING (when edge_routing != off AND edges > 15)
-  → read references/routing-corridors.md
-  → add corridors[] array to plan: one horizontal band between each shape row,
-    one vertical strip between each shape column — min 40 px wide/tall
-  → for any edge whose straight-line path crosses a non-endpoint shape,
-    add waypoints[] to that edge routing it through the nearest corridor
-  → re-validate: no corridor overlaps a shape AABB; corridors clear by ≥ 20 px
-Step 1.5. TEXT METRICS (when text_metrics != off)
-  → node scripts/text-metrics.js diagram.plan.json --out diagram.annotated.plan.json
-  → For each shape/container where text_safe.overflow == true:
-      - Set width  = max(declared_width,  text_safe.min_width)
-      - Set height = max(declared_height, text_safe.min_height)
-      - If swimlane: update startSize = max(declared_startSize, text_safe.min_startSize)
-  → Re-check grid collisions (nodes may have grown); adjust neighbours if needed
-  → Use diagram.annotated.plan.json as the plan going forward
-Step 2. EMIT XML (read template, fill placeholders, apply plan)
-Step 3. SELF-CHECK (re-read XML before writing file)
-  → see "Pre-flight checklist" below
-Step 4. WRITE file with the Write tool
-Step 5. VALIDATE (optional but recommended for >20 shapes)
-  → run scripts/validate.py
-Step 6. OVERLAP REMOVAL (mandatory for dense/complex diagrams)
-  → run scripts/elk-layout.py <file.drawio> --engine neato to automatically resolve overlaps
-Step 6.5. EDGE ROUTING (when edge_routing != off)
-  → run scripts/route-edges.py <file.drawio>
-  → inserts waypoints around any shapes that edges still intersect post-ELK
-  → re-run scripts/validate.py to confirm Q401 crossings → 0
-```
-
-See `references/plan-format.md` for the JSON plan schema.
-
-### Grounding manifest (F3) — `grounding_manifest`
-
-When `grounding_manifest: on` (default), **every** container, shape, and edge in the plan MUST include a non-empty `cite` field that traces the element to its source (file:line, doc:section, `user-stated`, `inferred from ...`, or `assumption:...`). The validator rejects any uncited entity with `G501`.
-
-Goal: no hallucinated boxes on client deliverables. Every element on the diagram is traceable back to an artifact the user can verify.
-
-Persist the plan next to the diagram as `<name>.plan.json` so `scripts/validate.py` auto-detects it (or pass `--plan path/to/plan.json` explicitly).
-
-Disable per-diagram with `--features grounding_manifest=off` for sketchy exploration; turn back on before delivery.
-
-## Workflow
-
-1. **Identify layout pattern** → pick from the 12 patterns below (or compose)
-2. **Read the relevant template** from `templates/` as a starting skeleton
-3. **Read `references/container-coords.md`** if the diagram has any container/swimlane/pool
-4. **Read `references/style-dictionary.md`** for color/style constants
-5. **Read `references/gestalt-rules.md`** for spacing, density, alignment rules
-6. **Read `references/shape-vocabulary/<vendor>.md`** if using AWS/Azure/GCP/UML/ER/BPMN icons
-7. **Build the JSON plan** (see `references/plan-format.md`)
-8. **Validate the plan** — parents exist, no grid collisions, edge endpoints valid
-9. **Emit XML** — replace placeholders, add shapes, wire edges, apply scope styles
-10. **Self-check** — run the pre-flight checklist (below)
-11. **Write file** to workspace
-12. **Validate** (optional) — `python3 scripts/validate.py <file.drawio>`
-13. **Overlap Removal** (mandatory for dense/complex diagrams) — run `python3 scripts/elk-layout.py <file.drawio> --engine neato`
-
-## Layout pattern selection (12 patterns)
-
-| # | Pattern | When to use | Template |
-|---|---|---|---|
-| 1 | **hub-radial** | One central system, spokes to satellites | `hub-radial.drawio` |
-| 2 | **scope-columns** | Two boundary scopes side by side (internal vs vendor) | `scope-columns.drawio` |
-| 3 | **swimlanes** | Horizontal bands by trust zone / cadence / tenant | `swimlanes.drawio` |
-| 4 | **pipeline** | LR flow: sources → processing → consumers (streaming, ETL) | `pipeline.drawio` |
-| 5 | **tenant-namespace** | Nested containers per tenant (multi-tenant Kafka/Flink) | `tenant-namespace.drawio` |
-| 6 | **c4-context** | C4 L1 — Person/System/External boundaries | `c4-context.drawio` |
-| 7 | **c4-container** | C4 L2 — Containers inside a system | `c4-container.drawio` |
-| 8 | **c4-component** | C4 L3 — Components inside a container | `c4-component.drawio` |
-| 9 | **erd-crowfoot** | Entity-relationship with crow's-foot cardinality | `erd-crowfoot.drawio` |
-| 10 | **uml-class** | UML class diagram (3-compartment boxes, inheritance) | `uml-class.drawio` |
-| 11 | **sequence** | UML sequence — lifelines + messages | `sequence.drawio` |
-| 12 | **tree-hierarchy** | Org chart, decision tree, taxonomy | `tree-hierarchy.drawio` |
-| 13 | **flowchart-dag** | Flowchart with decision diamonds, start/end | `flowchart-dag.drawio` |
-| 14 | **bpmn-process** | BPMN: pools, lanes, gateways, events, tasks | `bpmn-process.drawio` |
-| 15 | **grid-matrix** | 2D classification / capability matrix | `grid-matrix.drawio` |
-
-> The numbering exceeds 12 because C4 has three sub-patterns. Pick the **finest-grained** pattern that fits.
+---
 
 ## The #1 rule: container-relative coordinates
 
@@ -302,6 +164,8 @@ the layer that comes *before* the icon layer to keep connectors behind shape gly
 Read `references/edge-routing.md` for full edge routing patterns (orthogonal, curved,
 waypoints, label anchoring).
 
+---
+
 ## Pre-flight checklist (run before writing the file)
 
 | # | Check | Failure symptom |
@@ -310,7 +174,7 @@ waypoints, label anchoring).
 | 2 | All `id` values unique across the diagram | Random shapes disappear |
 | 3 | Every shape's `parent=` exists in the document | Shape rendered at canvas origin |
 | 4 | Shape coordinates are **relative to parent** when parent is a container | Shapes appear outside their swimlane |
-| 5 | Cross-container edges have `parent="<common-ancestor>"` | Edge clipped or invisible |
+| 5 | Cross-container edges have `parent="<lowest-common-ancestor>"` — for shapes in sibling containers (e.g. grandchildren of the same grandparent) the LCA is the grandparent, not `"1"`. Example: shape in `ext_z1` → shape in `ext_z2` (both children of `ext_scope`) → edge `parent="ext_scope"`, not `parent="1"` | Edge clipped or drifts when container moves |
 | 6 | No XML comments (`<!-- -->`) inside the model | Import may fail in Lucidchart |
 | 7 | HTML in `value` is escaped (`&amp;`, `&lt;`, `&gt;`, `&quot;`) | Malformed XML |
 | 8 | Container header reserved with `startSize=N` and no shape overlaps it | Header text overlaps content (x >= startSize for horizontal=0; y >= startSize for horizontal=1) |
@@ -320,6 +184,54 @@ waypoints, label anchoring).
 | 12 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
 | 13 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
 | 14 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
+| 15 | **Legend present when diagram uses ≥ 2 distinct edge styles** (different color or dash). Every legend entry corresponds to ≥ 1 edge in the diagram; every edge style in the diagram has a legend entry. Remove orphan entries; add missing ones. | Reader cannot decode edge semantics; legend claims styles that don't exist |
+| 16 | **edge_layer consistency**: if `edge_layer` is declared, ALL canvas-level edges must use `parent="edge_layer"`. Never mix `parent="1"` and `parent="edge_layer"` for edges in the same diagram. Edges that must use a container LCA (cross-lane, intra-cluster) keep their container parent — that is the only valid exception. | Edge layer declared but ignored; edges render over icons anyway |
+
+---
+
+## Layout pattern selection (15 patterns)
+
+| # | Pattern | When to use | Template |
+|---|---|---|---|
+| 1 | **hub-radial** | One central system, spokes to satellites | `hub-radial.drawio` |
+| 2 | **scope-columns** | Two boundary scopes side by side (internal vs vendor) | `scope-columns.drawio` |
+| 3 | **swimlanes** | Horizontal bands by trust zone / cadence / tenant | `swimlanes.drawio` |
+| 4 | **pipeline** | LR flow: sources → processing → consumers (streaming, ETL) | `pipeline.drawio` |
+| 5 | **tenant-namespace** | Nested containers per tenant (multi-tenant Kafka/Flink) | `tenant-namespace.drawio` |
+| 6 | **c4-context** | C4 L1 — Person/System/External boundaries | `c4-context.drawio` |
+| 7 | **c4-container** | C4 L2 — Containers inside a system | `c4-container.drawio` |
+| 8 | **c4-component** | C4 L3 — Components inside a container | `c4-component.drawio` |
+| 9 | **erd-crowfoot** | Entity-relationship with crow's-foot cardinality | `erd-crowfoot.drawio` |
+| 10 | **uml-class** | UML class diagram (3-compartment boxes, inheritance) | `uml-class.drawio` |
+| 11 | **sequence** | UML sequence — lifelines + messages | `sequence.drawio` |
+| 12 | **tree-hierarchy** | Org chart, decision tree, taxonomy | `tree-hierarchy.drawio` |
+| 13 | **flowchart-dag** | Flowchart with decision diamonds, start/end | `flowchart-dag.drawio` |
+| 14 | **bpmn-process** | BPMN: pools, lanes, gateways, events, tasks | `bpmn-process.drawio` |
+| 15 | **grid-matrix** | 2D classification / capability matrix | `grid-matrix.drawio` |
+
+> The numbering exceeds 12 because C4 has three sub-patterns. Pick the **finest-grained** pattern that fits.
+
+## When the user does not specify a layout
+
+| User says... | Pick |
+|---|---|
+| "system context", "external systems and users" | c4-context |
+| "show the containers / services inside X" | c4-container |
+| "deployment / hosting / where things run" | scope-columns or swimlanes |
+| "data flow / pipeline / streaming / ETL" | pipeline |
+| "multi-tenant / per-tenant" | tenant-namespace |
+| "central X integrating with N satellites" | hub-radial |
+| "database schema / entities and relationships" | erd-crowfoot |
+| "class diagram / domain model" | uml-class |
+| "how the request flows through services" (call ordering matters) | sequence |
+| "decision tree / process with conditions" | flowchart-dag |
+| "business process with gateways / events" | bpmn-process |
+| "org chart / taxonomy / hierarchy" | tree-hierarchy |
+| "capability map / 2D classification" | grid-matrix |
+
+If still unclear, ask one question — do not guess.
+
+---
 
 ## Style allowlist
 
@@ -343,6 +255,8 @@ Blue (cloud zone):        swimlane;startSize=26;dashed=1;strokeColor=#1565C0;str
 Orange (regulated):       swimlane;startSize=26;dashed=1;strokeColor=#E65100;strokeWidth=2;fillColor=none;fontColor=#E65100;fontSize=12;fontStyle=1;
 ```
 
+---
+
 ## Reference files (read on demand)
 
 Critical (read first when diagram has matching feature):
@@ -355,6 +269,8 @@ Critical (read first when diagram has matching feature):
 Examples & guides:
 - **prompt-examples.md** — 5 canonical prompts (C4 container, pipeline, BPMN swimlanes, ERD, multi-tenant) — copy/paste starting points
 - **layout-engines.md** — when to use ELK vs Graphviz `dot` / `neato`; direction guide per pattern
+- **workflow-deep.md** — step-by-step pipeline for each profile (production, draft, dense)
+- **feature-matrix.md** — compatibility rules and invalid-combination examples (F001–F007)
 
 Supporting (read for details):
 - **xml-schema.md** — mxGraph attribute reference, geometry, layers, tags
@@ -375,26 +291,3 @@ Vendor vocabularies:
 - `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
 - `scripts/route-edges.py` — obstacle-push edge routing (honors `edge_routing` flag). Run with: `python3 scripts/route-edges.py <file>.drawio` (after elk-layout, before fit-fonts)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
-
-
-## When the user does not specify a layout
-
-Pick the layout by intent:
-
-| User says... | Pick |
-|---|---|
-| "system context", "external systems and users" | c4-context |
-| "show the containers / services inside X" | c4-container |
-| "deployment / hosting / where things run" | scope-columns or swimlanes |
-| "data flow / pipeline / streaming / ETL" | pipeline |
-| "multi-tenant / per-tenant" | tenant-namespace |
-| "central X integrating with N satellites" | hub-radial |
-| "database schema / entities and relationships" | erd-crowfoot |
-| "class diagram / domain model" | uml-class |
-| "how the request flows through services" (call ordering matters) | sequence |
-| "decision tree / process with conditions" | flowchart-dag |
-| "business process with gateways / events" | bpmn-process |
-| "org chart / taxonomy / hierarchy" | tree-hierarchy |
-| "capability map / 2D classification" | grid-matrix |
-
-If still unclear, ask one question — do not guess.

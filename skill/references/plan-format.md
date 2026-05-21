@@ -167,8 +167,10 @@ If turned off, `cite` is ignored. Use for sketchy exploration where source-traci
 | 3 | No two shapes share the same `grid_cell` | Build a `{(row,col) → shape_id}` map; check for duplicates |
 | 4 | Every container's children fit inside its `w` and `h` | For each container, find children where `x+w > container.w` or `y+h > container.h` |
 | 5 | Every container's first child clears `startSize` | Parse `horizontal` from the container's `style` string (default `1` if absent). `horizontal=1` → top header: flag children where `y < startSize`. `horizontal=0` → left header: flag children where `x < startSize`. |
-| 6 | Every edge's `parent` is the lowest common ancestor of source and target | Walk parent chain from source up; first ancestor that also contains target |
+| 6 | Every edge's `parent` is the lowest common ancestor of source and target. For shapes nested 3+ levels deep (e.g. grandchildren of the same grandparent container), the LCA is the grandparent — not `"1"`. Example: shape in `ext_z1` (child of `ext_scope`) and shape in `ext_z2` (child of `ext_scope`) → edge `parent="ext_scope"`. | Walk parent chain from source up; first ancestor that also contains target |
 | 7 | Shape and container ids are unique across the whole plan | Set membership check |
+| 8 | Every shape assigned a `grid_cell` has `y` equal to `grid_start_y + row * cell_h` (±padding). No shape's y falls between two grid rows. Straddle = wrong row assignment. | For each shape with grid_cell, compute expected y from cell; flag if actual y differs by more than cell_padding |
+| 9 | No dead-end shapes. Every non-terminal shape (not an explicit sink/store) has at least one outgoing edge. Flag any shape with edges in but no edges out — either add the missing connection or mark it as a sink in the plan. | Build an adjacency set; for each shape check out-degree > 0 or explicitly tagged `terminal: true` |
 
 If any check fails, **adjust the plan** before emitting XML — do not skip ahead.
 
