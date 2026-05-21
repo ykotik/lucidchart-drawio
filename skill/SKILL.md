@@ -185,6 +185,7 @@ waypoints, label anchoring).
 | 13 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
 | 14 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
 | 15 | **Legend present when diagram uses ≥ 2 distinct edge styles** (different color or dash). Every legend entry corresponds to ≥ 1 edge in the diagram; every edge style in the diagram has a legend entry. Remove orphan entries; add missing ones. | Reader cannot decode edge semantics; legend claims styles that don't exist |
+| 17 | If ≥ 2 edge semantic types or ≥ 3 vendor namespaces, include a legend container — legend cell `id` must contain `"legend"` (case-insensitive); use `_legend-snippet.drawio` as starting point (see `references/legend.md`) | W122 fires; reader cannot decode mixed edge/vendor semantics |
 | 16 | **edge_layer consistency**: if `edge_layer` is declared, ALL canvas-level edges must use `parent="edge_layer"`. Never mix `parent="1"` and `parent="edge_layer"` for edges in the same diagram. Edges that must use a container LCA (cross-lane, intra-cluster) keep their container parent — that is the only valid exception. | Edge layer declared but ignored; edges render over icons anyway |
 
 ---
@@ -291,3 +292,4 @@ Vendor vocabularies:
 - `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
 - `scripts/route-edges.py` — obstacle-push edge routing (honors `edge_routing` flag). Run with: `python3 scripts/route-edges.py <file>.drawio` (after elk-layout, before fit-fonts)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
+- `scripts/fit-containers.py` — container auto-shrink (Item 13); shrinks container w/h to children bbox + padding, respects swimlane `startSize`, processes bottom-up. Run with: `python3 scripts/fit-containers.py <file>.drawio --padding 24`

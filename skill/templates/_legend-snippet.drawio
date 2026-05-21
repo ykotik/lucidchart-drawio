@@ -1,0 +1,74 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+
+    <!-- LEGEND CONTAINER — place top-right or bottom-left; adjust x/y to avoid overlaps.
+         Width=220 fixed. Height = 28 + (22 * entry_count). id MUST contain "legend".
+         Replace ENTRY_n placeholders; add/remove entry pairs as needed (max 8). -->
+    <mxCell id="legend_container" value="Legend"
+      style="swimlane;startSize=28;fillColor=#F5F5F5;strokeColor=#BDBDBD;
+             fontStyle=1;fontSize=12;fontColor=#212121;
+             rounded=1;arcSize=4;pointerEvents=1;"
+      vertex="1" parent="1">
+      <mxGeometry x="900" y="40" width="220" height="116" as="geometry"/>
+    </mxCell>
+
+    <!-- ENTRY 1: solid edge swatch + label -->
+    <mxCell id="legend_swatch_1" value=""
+      style="endArrow=block;endFill=1;edgeStyle=orthogonalEdgeStyle;
+             strokeColor=#1565C0;strokeWidth=2;"
+      edge="1" parent="legend_container" source="" target="">
+      <mxGeometry x="12" y="50" width="40" height="0" relative="1" as="geometry">
+        <Array as="points"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="legend_label_1" value="ENTRY_1"
+      style="text;html=1;fontSize=10;fontColor=#212121;align=left;"
+      vertex="1" parent="legend_container">
+      <mxGeometry x="60" y="40" width="150" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- ENTRY 2: dashed edge swatch + label -->
+    <mxCell id="legend_swatch_2" value=""
+      style="endArrow=block;endFill=0;dashed=1;strokeColor=#757575;strokeWidth=1;"
+      edge="1" parent="legend_container" source="" target="">
+      <mxGeometry x="12" y="72" width="40" height="0" relative="1" as="geometry">
+        <Array as="points"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="legend_label_2" value="ENTRY_2"
+      style="text;html=1;fontSize=10;fontColor=#212121;align=left;"
+      vertex="1" parent="legend_container">
+      <mxGeometry x="60" y="62" width="150" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- ENTRY 3: dotted/async edge swatch + label -->
+    <mxCell id="legend_swatch_3" value=""
+      style="endArrow=open;dashed=1;dashPattern=1 4;strokeColor=#9E9E9E;strokeWidth=1;"
+      edge="1" parent="legend_container" source="" target="">
+      <mxGeometry x="12" y="94" width="40" height="0" relative="1" as="geometry">
+        <Array as="points"/>
+      </mxGeometry>
+    </mxCell>
+    <mxCell id="legend_label_3" value="ENTRY_3"
+      style="text;html=1;fontSize=10;fontColor=#212121;align=left;"
+      vertex="1" parent="legend_container">
+      <mxGeometry x="60" y="84" width="150" height="20" as="geometry"/>
+    </mxCell>
+
+    <!-- ENTRY 4: vendor icon swatch + label (replace shape= with actual vendor shape) -->
+    <mxCell id="legend_swatch_4" value=""
+      style="shape=mxgraph.aws4.resourceIcon;resIcon=mxgraph.aws4.general;
+             fillColor=#FF9900;strokeColor=#232F3E;"
+      vertex="1" parent="legend_container">
+      <mxGeometry x="12" y="106" width="24" height="24" as="geometry"/>
+    </mxCell>
+    <mxCell id="legend_label_4" value="ENTRY_4"
+      style="text;html=1;fontSize=10;fontColor=#212121;align=left;"
+      vertex="1" parent="legend_container">
+      <mxGeometry x="60" y="106" width="150" height="20" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

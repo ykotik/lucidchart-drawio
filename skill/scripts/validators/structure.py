@@ -30,13 +30,14 @@ class StructureValidator(Validator):
     W103  child overlaps swimlane header
     W104  edge parent not LCA
     W105  swimlane without explicit startSize
+    W121  missing edge anchors on dense diagram
     I201  >40 vertices
     I203  empty container
     """
 
     codes = (
         "E001", "E002", "E003", "E004", "E005", "E006", "E008",
-        "W101", "W102", "W103", "W104", "W105",
+        "W101", "W102", "W103", "W104", "W105", "W121",
         "I201", "I203",
     )
 
@@ -191,6 +192,42 @@ class StructureValidator(Validator):
                         result.append(Diagnostic("W102", WRN,
                             f"Shape '{a}' overlaps shape '{b}' (siblings under '{p}')",
                             element_id=a))
+
+        # ---- W121 missing edge anchors on dense diagram ----
+        _ANCHOR_KEYS = ("exitX", "exitY", "entryX", "entryY")
+        edge_cells = [(cid, c) for cid, c in by_id.items() if is_edge[cid]]
+        edge_count = len(edge_cells)
+
+        # count cross-container edges: source.parent != target.parent
+        cross_container_count = 0
+        for cid, c in edge_cells:
+            src = c.get("source")
+            tgt = c.get("target")
+            if src and tgt and src in by_id and tgt in by_id:
+                if parents.get(src) != parents.get(tgt):
+                    cross_container_count += 1
+
+        if edge_count >= 20 or cross_container_count >= 3:
+            for cid, c in edge_cells:
+                src = c.get("source")
+                tgt = c.get("target")
+                # skip dangling edges (E004/E005 handles those)
+                if not src or not tgt or src not in by_id or tgt not in by_id:
+                    continue
+                # skip edges to/from containers — anchor is legitimately absent
+                src_st = styles.get(src, {})
+                tgt_st = styles.get(tgt, {})
+                if ("swimlane" in src_st or src_st.get("container") == "1" or
+                        "swimlane" in tgt_st or tgt_st.get("container") == "1"):
+                    continue
+                # styles[cid] is a KV dict; check key presence directly
+                edge_st = styles.get(cid, {})
+                if any(k not in edge_st for k in _ANCHOR_KEYS):
+                    result.append(Diagnostic("W121", WRN,
+                        f"Edge '{cid}' missing anchor(s) on dense diagram "
+                        f"(edges={edge_count}, cross_container={cross_container_count})"
+                        f" — add exitX/exitY/entryX/entryY to style",
+                        element_id=cid))
 
         # ---- I201 too many nodes ----
         n_vertices = sum(1 for c in by_id if is_vertex[c])

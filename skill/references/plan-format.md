@@ -113,11 +113,51 @@ paper and the arXiv DiagrammerGPT paper.
 |---|---|
 | `grid_cell` on shapes | Lets you verify no two shapes claim the same cell |
 | `exit` / `entry` on edges | Forces clean routing — see `edge-routing.md` §4 |
+| `anchor_attrs` on edges | See **Edge anchors** section below — required when edges≥20 or cross-container edges≥3 (W121). |
 | `waypoints` on edges | Explicit waypoints for edges that must detour around a blocker — populated during Step 1.2 corridor planning (F7). Each entry is `{x, y}` in canvas-absolute coordinates. `scripts/route-edges.py` also writes waypoints here when it detects intersections post-ELK. |
 | `corridors[]` | **F7 edge_routing** — reserved routing bands. Add when diagram has > 15 edges. Each entry needs `id`, `axis` (`h`\|`v`), `y`+`height` (horizontal) or `x`+`width` (vertical), and `cite: "routing"`. See `routing-corridors.md` for sizing rules and pattern-specific guidance. |
 | `legend.include` | Auto-add a legend box at the bottom-right |
 | `vendor_icon` on shapes | Looks up the icon style from shape-vocabulary |
 | `cite` on every shape / container / edge | **F3 grounding manifest — required when `grounding_manifest=on`.** See the section below. |
+
+---
+
+## Edge anchors
+
+mxGraph edges express connection anchor points via four style attributes:
+
+| Attribute | Range | Meaning |
+|---|---|---|
+| `exitX` | 0–1 | Horizontal fraction of source shape bounds where edge exits |
+| `exitY` | 0–1 | Vertical fraction of source shape bounds where edge exits |
+| `entryX` | 0–1 | Horizontal fraction of target shape bounds where edge enters |
+| `entryY` | 0–1 | Vertical fraction of target shape bounds where edge enters |
+
+Without these, mxGraph auto-picks connection points that can look wrong on dense diagrams, especially across container boundaries.
+
+**When required:** The validator emits **W121** when `edge_count >= 20` OR `cross_container_count >= 3`. At that threshold, every edge connecting two non-container shapes must carry all four attrs.
+
+**Exempt edges:** Edges where source or target is a container (swimlane/group) may legitimately omit anchors — mxGraph connects to the container perimeter dynamically.
+
+**Worked example** — edge exiting the right side of source, entering the left side of target (the most common LR-pipeline pattern):
+
+```xml
+<mxCell id="e4" value="route traffic"
+  style="edgeStyle=orthogonalEdgeStyle;exitX=1;exitY=0.5;entryX=0;entryY=0.5;
+         rounded=0;orthogonalLoop=1;jettySize=auto;html=1;"
+  edge="1" source="alb" target="ecs" parent="vpc">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+```
+
+Common anchor combinations:
+
+| Direction | exitX | exitY | entryX | entryY |
+|---|---|---|---|---|
+| Left → Right | 1 | 0.5 | 0 | 0.5 |
+| Right → Left | 0 | 0.5 | 1 | 0.5 |
+| Top → Bottom | 0.5 | 1 | 0.5 | 0 |
+| Bottom → Top | 0.5 | 0 | 0.5 | 1 |
 
 ---
 

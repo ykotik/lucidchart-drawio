@@ -101,6 +101,35 @@ DASHED grey (future/planned):
   dashed=1;strokeColor=#757575;
 ```
 
+## Legend styles
+
+```
+legend_container:
+  swimlane;startSize=28;fillColor=#F5F5F5;strokeColor=#BDBDBD;
+  fontStyle=1;fontSize=12;fontColor=#212121;rounded=1;arcSize=4;
+
+legend_title:
+  (set via swimlane value= attribute — no separate cell needed)
+
+legend_entry:
+  text;html=1;fontSize=10;fontColor=#212121;align=left;
+
+legend_swatch_solid:
+  endArrow=block;endFill=1;edgeStyle=orthogonalEdgeStyle;strokeWidth=2;
+  (set strokeColor= to match diagram edge color)
+
+legend_swatch_dashed:
+  endArrow=block;endFill=0;dashed=1;strokeWidth=1;
+  (set strokeColor= to match diagram edge color)
+
+legend_swatch_dotted:
+  endArrow=open;dashed=1;dashPattern=1 4;strokeWidth=1;strokeColor=#9E9E9E;
+
+legend_swatch_vendor_icon:
+  shape=mxgraph.<vendor>.<name>;width=24;height=24;
+  (copy fill/stroke from diagram shape — decorative, no label)
+```
+
 ## Legend snippet (reusable XML)
 
 ```xml

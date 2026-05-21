@@ -16,6 +16,9 @@ import re as _re
 
 from .base import Diagnostic, ERR, WRN, INF, Validator
 
+# Patterns where non-orthogonal edges are intentional (radial spokes, lifeline crossings).
+Q402_EXEMPT_PATTERNS: frozenset[str] = frozenset({"hub-radial", "sequence"})
+
 
 # ---------------------------------------------------------------- geometry helpers
 
@@ -132,20 +135,38 @@ class QualityValidator(Validator):
                 f"for structural overlaps also run scripts/elk-layout.py (F4)"))
 
         # ---------- Q402 orthogonality conformance ----------
-        n_edges = sum(1 for cid in by_id if is_edge[cid])
-        n_ortho = sum(
-            1 for cid in by_id
-            if is_edge[cid]
-            and "orthogonalEdgeStyle" in (styles[cid].get("edgeStyle", "") or "")
-        )
-        if n_edges > 0:
-            pct = (n_ortho / n_edges) * 100.0
+        # Detect layout pattern: prefer root attribute → ctx key → cell-ID heuristic.
+        _pattern: str = ""
+        if model is not None:
+            _pattern = (model.get("data-layout-pattern") or "").strip().lower()
+        if not _pattern:
+            _pattern = str(ctx.get("pattern", "")).strip().lower()
+        if not _pattern:
+            # Last-resort: infer from well-known sentinel cell IDs.
+            _ids = set(by_id.keys())
+            if "hub" in _ids:
+                _pattern = "hub-radial"
+            elif any(cid.startswith("lifeline") for cid in _ids):
+                _pattern = "sequence"
+
+        if _pattern in Q402_EXEMPT_PATTERNS:
             result.append(Diagnostic("Q402", INF,
-                f"Orthogonality conformance: {n_ortho}/{n_edges} = {pct:.0f}%"))
-            if pct < 80.0 and n_edges >= 4:
-                result.append(Diagnostic("Q402", WRN,
-                    f"Low orthogonality ({pct:.0f}%) — architecture diagrams read cleanest at >=80% "
-                    f"orthogonal. Add edgeStyle=orthogonalEdgeStyle to remaining edges."))
+                f"Skipped (pattern '{_pattern}' exempt from orthogonality check)"))
+        else:
+            n_edges = sum(1 for cid in by_id if is_edge[cid])
+            n_ortho = sum(
+                1 for cid in by_id
+                if is_edge[cid]
+                and "orthogonalEdgeStyle" in (styles[cid].get("edgeStyle", "") or "")
+            )
+            if n_edges > 0:
+                pct = (n_ortho / n_edges) * 100.0
+                result.append(Diagnostic("Q402", INF,
+                    f"Orthogonality conformance: {n_ortho}/{n_edges} = {pct:.0f}%"))
+                if pct < 80.0 and n_edges >= 4:
+                    result.append(Diagnostic("Q402", WRN,
+                        f"Low orthogonality ({pct:.0f}%) — architecture diagrams read cleanest at >=80% "
+                        f"orthogonal. Add edgeStyle=orthogonalEdgeStyle to remaining edges."))
 
         # ---------- Q403 edge-length CV ----------
         lengths: list[float] = []

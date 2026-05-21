@@ -74,12 +74,16 @@ from .quality     import QualityValidator      # noqa: E402
 from .grounding   import GroundingValidator    # noqa: E402
 from .text_checks import TextMetricsValidator  # noqa: E402
 from .features    import FeatureFlagValidator  # noqa: E402
+from .vendor      import VendorEnforcementValidator  # noqa: E402
+from .legend      import LegendValidator             # noqa: E402
 
 register_validator(StructureValidator)
 register_validator(QualityValidator)
 register_validator(GroundingValidator)
 register_validator(TextMetricsValidator)
 register_validator(FeatureFlagValidator)
+register_validator(VendorEnforcementValidator)
+register_validator(LegendValidator)
 
 
 # ---------------------------------------------------------------- run_all

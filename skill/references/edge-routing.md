@@ -269,6 +269,60 @@ dense diagrams.
 
 ---
 
+## 12. Edge bundling — `_bundle_parallel_edges` (route-edges.py)
+
+When multiple edges connect the same pair of regions they visually stack on top
+of each other. The bundling pass detects these groups and spreads them apart by
+a perpendicular offset so each edge is individually readable.
+
+**Algorithm:**
+
+1. **Anchor-proximity grouping** — each edge's source/target centre points are
+   snapped to a grid of 12 px. Edges whose (snapped_p1, snapped_p2) pairs match
+   (or are reversed) land in the same group.
+
+2. **Co-linear sub-grouping** — within each anchor-proximity group, edges are
+   further sub-grouped by their middle-segment coordinate (snapped to 4 px). Only
+   edges whose middle segments truly overlap receive an offset.
+
+3. **Perpendicular offset** — edges in a sub-group of size `n` receive offset
+   `(i − (n−1)/2) × stride` pixels, perpendicular to the edge's primary direction:
+   - The centre edge (or centre-most, when n is even) has offset ≈ 0.
+   - Adjacent edges step by `stride` px in opposite directions.
+   - Sort key: edge `id` (lexicographic), for stable, deterministic ordering.
+
+4. **Orthogonal edges** (have existing waypoints): only the middle-segment bracket
+   waypoints are shifted. This avoids disturbing obstacle-avoidance detour points.
+
+5. **Straight/diagonal edges** (no waypoints): two synthetic waypoints are
+   inserted at the quarter and three-quarter points of the edge, both shifted by
+   `offset` on the perpendicular axis.
+
+**CLI flags:**
+
+| Flag | Default | Effect |
+|---|---|---|
+| `--bundle-stride N` | `8` | Perpendicular px gap between adjacent edges in a bundle |
+| `--no-bundle` | — | Disable bundling pass entirely |
+
+**Summary stat** emitted after each run:
+
+```
+route-edges: fixed 3 edge(s), bundling.groups_offset=2, edges_offset=4 → diagram.drawio
+```
+
+**When to disable:**
+
+- Sequence diagrams with deliberate overlapping messages (use `--no-bundle`).
+- Diagrams where all edges are intentionally on separate horizontal rows (hub-radial layouts).
+- When `--bundle-stride 0` would be wanted — use `--no-bundle` instead for clarity.
+
+**Bundling runs after** obstacle-avoidance routing so that detour waypoints
+computed by `_route_with_retry` are preserved and only the middle-segment offset
+is applied on top.
+
+---
+
 ## 11. Common edge bugs
 
 | Bug | Cause | Fix |

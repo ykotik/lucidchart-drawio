@@ -43,13 +43,16 @@ Default mode is `standard` — errors fail, warnings print but exit 0.
 | `W108` | Two shapes have the same label `<label>` | Disambiguate labels |
 | `W109` | Shape coords look canvas-absolute but parent is a container | Convert to relative coords |
 | `W110` | Edge has no entry/exit points and crosses ≥3 other shapes | Force `exitX/entryX` or add waypoints |
+| `W120` | Shape `<id>` cites `<vendor>` docs but uses generic style (expected `mxgraph.<vendor-prefix>.*`) | Replace generic style with the correct vendor shape from the vocabulary file (e.g. `shape=mxgraph.aws4.ec2`) — see `shape-vocabulary/aws.md`, `azure.md`, `gcp.md` |
+| `W121` | Edge `<id>` missing anchor(s) on dense diagram (edges=N, cross_container=M) — add exitX/exitY/entryX/entryY to style | Add all four anchor attrs to the edge style: `exitX=1;exitY=0.5;entryX=0;entryY=0.5` — triggered when edges≥20 or cross-container edges≥3; skipped for edges to/from containers |
+| `W122` | Diagram has N edge type(s) / M vendor namespace(s) — add a legend container (see references/legend.md) | Add a legend container using `_legend-snippet.drawio` template; container `id` must contain `"legend"` (case-insensitive). Triggered when edge semantic types ≥ 2 OR vendor namespaces (aws4/azure2/gcp2) ≥ 3. Edge semantic type = (dashed, strokeColor, endArrow) tuple. |
 
 ### Info (nice-to-fix)
 
 | Check | Message |
 |---|---|
 | `I201` | Diagram has >40 nodes — consider splitting into multiple pages |
-| `I202` | No legend present on a diagram with >2 edge styles |
+| `I202` | (superseded by W122) No legend present on a diagram with >2 edge styles |
 | `I203` | Container `<id>` is empty |
 
 ### Layout quality metrics (F2 — `quality_gate` feature flag)
@@ -59,7 +62,7 @@ Runs only when `features.quality_gate=on` (default). Disable with `--features qu
 | Code | Metric | Warning threshold |
 |---|---|---|
 | `Q401` | **Edge crossings** — straight-line proxy between source/target shape centers in canvas-absolute coords | `> max(2, edges / 4)` when `edges >= 6` — suggestion: `auto_layout=elk` |
-| `Q402` | **Orthogonality conformance %** — edges using `edgeStyle=orthogonalEdgeStyle` | `< 80%` when `edges >= 4` |
+| `Q402` | **Orthogonality conformance %** — edges using `edgeStyle=orthogonalEdgeStyle` | `< 80%` when `edges >= 4`. **Exempt patterns**: `hub-radial`, `sequence` — emits INFO "Skipped (pattern '…' exempt)" instead of WARN. |
 | `Q403` | **Edge length CV** — coefficient of variation = std/mean of straight-line edge lengths | `> 1.2` when `edges >= 3` |
 | `Q404` | **Area utilization** — sum of node areas / bounding-box area | `< 10%` (spread thin) or `> 65%` (crowded) when `nodes >= 6` |
 | `Q405` | **Text overflow** — label exceeds cell bounds at current `fontSize` (char-width estimate, matches `scripts/fit-fonts.py`) | Any overflowing cell — suggestion: run `scripts/fit-fonts.py` |
