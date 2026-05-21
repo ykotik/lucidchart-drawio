@@ -53,7 +53,7 @@ Copy/paste any of these as a starting point and adapt the source citations to yo
 - Names the pattern explicitly (`c4-container`)
 - Every entity has a `cite` source → grounding manifest passes
 - Marks one assumption (per-merchant URL) → surfaces as G502 warning for review
-- ~12 containers + ~10 edges → big enough that `critic_judge_loop: auto` fires (>15 shapes including externals)
+- ~12 containers + ~10 edges → enough for `auto_layout=auto` to consider ELK if validator's Q401 (crossings) trips
 - The dashed system boundary + two-layer edge rendering will keep edges behind icons
 
 ---
@@ -194,7 +194,7 @@ Copy/paste any of these as a starting point and adapt the source citations to yo
 
 - 3 levels of nesting (cluster → tenant → namespace → topics) → most demanding container-coords test in the suite
 - Each tenant's edges have their LCA = the cluster → great `parent="<lca>"` test
-- ~30+ shapes → `critic_judge_loop` definitely fires; `auto_layout=auto` triggers ELK
+- ~30+ shapes → `auto_layout=auto` triggers ELK; consider `--engine neato` afterwards for overlap removal in the topic grid
 - Multiple Postgres sub-containers with distinct colors → tests scope styles + per-tenant grouping
 - Long topic/table names test font_fit (would otherwise overflow narrow topic boxes)
 

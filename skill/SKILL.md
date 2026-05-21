@@ -24,6 +24,41 @@ features:
 
 # Lucidchart draw.io Diagram Skill (v2.1)
 
+## Quick start — usage
+
+Pick the prompt closest to what you need, replace the source citations with your real artifacts, paste into Claude. The skill picks the matching template, validates, lays out, fits fonts, and writes a `.drawio` + `.plan.json` pair.
+
+| Prompt | Pattern | Best for |
+|---|---|---|
+| [1. C4 Container — internal system](references/prompt-examples.md#1-c4-container--internal-payments-platform) | `c4-container` | Multi-tier app: web/mobile/api/worker/db, with named external systems. Grounding cites required. |
+| [2. LR streaming pipeline](references/prompt-examples.md#2-lr-streaming-pipeline--clickstream-analytics) | `pipeline` | 20+ shapes, many cross-stage edges — auto_layout=elk pays for itself. |
+| [3. BPMN swimlanes — approval flow](references/prompt-examples.md#3-bpmn-swimlanes--purchase-requisition-approval) | `bpmn-process` | Multi-lane process with cross-lane edges + decision gateways. |
+| [4. ERD crow's-foot](references/prompt-examples.md#4-erd-crows-foot--multi-tenant-saas-schema) | `erd-crowfoot` | Database schema with PK/FK + crow's-foot cardinality. |
+| [5. Multi-tenant Kafka deployment](references/prompt-examples.md#5-multi-tenant-kafka-deployment--tenant-namespace-pattern) | `tenant-namespace` | 3-level nesting (cluster → tenant → namespace), per-tenant sub-containers. |
+
+**Minimum shape of a good prompt:**
+
+```text
+Build a <pattern-name> diagram for <subject>.
+
+Containers/lanes (if applicable):
+  ...
+
+Shapes (with source citations — required when grounding_manifest=on):
+  - <name> — cite: <source.md:§N> or <table.xlsx:row N>
+  ...
+
+Edges:
+  - <source> → <target> labeled "<protocol/format>"
+  ...
+
+Output: <path>/<NN_name>.drawio + matching .plan.json
+```
+
+Full examples (~200-word prompts with realistic source maps): see [references/prompt-examples.md](references/prompt-examples.md). The "anti-examples" section there shows what NOT to write.
+
+---
+
 ## Feature flags
 
 The skill's behavior is controlled by the `features:` block in the YAML frontmatter above. Override per-diagram with a `<!-- lucid:feature=value -->` comment on the first line of the source plan, or by passing `--features <key>=<value>,...` to `scripts/validate.py` / `scripts/elk-layout.py` where supported. **Each feature can be turned off independently.**
@@ -304,8 +339,7 @@ Critical (read first when diagram has matching feature):
 
 Examples & guides:
 - **prompt-examples.md** — 5 canonical prompts (C4 container, pipeline, BPMN swimlanes, ERD, multi-tenant) — copy/paste starting points
-- **layout-engines.md** — when to use ELK vs Graphviz dot; direction guide per pattern
-- **critic-judge-loop.md** — iterative refinement protocol for >15-shape diagrams
+- **layout-engines.md** — when to use ELK vs Graphviz `dot` / `neato`; direction guide per pattern
 
 Supporting (read for details):
 - **xml-schema.md** — mxGraph attribute reference, geometry, layers, tags
@@ -326,10 +360,6 @@ Vendor vocabularies:
 - `scripts/elk-layout.py` — ELK / Graphviz auto-layout (honors `auto_layout` flag). Run with: `python3 scripts/elk-layout.py <file>.drawio --engine auto` (or `--engine neato` for overlap removal)
 - `scripts/fit-fonts.py` — adaptive `fontSize` post-processor (honors `font_fit` flag). Run with: `python3 scripts/fit-fonts.py <file>.drawio --mode auto`
 
-
-## Prompt examples
-
-For 5 ready-to-adapt prompts (C4 container, LR pipeline, BPMN swimlanes, ERD, multi-tenant Kafka), see `references/prompt-examples.md`. Each example calls out which flags / features it exercises best.
 
 ## When the user does not specify a layout
 
