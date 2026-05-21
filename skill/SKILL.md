@@ -315,7 +315,7 @@ waypoints, label anchoring).
 | 7 | HTML in `value` is escaped (`&amp;`, `&lt;`, `&gt;`, `&quot;`) | Malformed XML |
 | 8 | Container header reserved with `startSize=N` and no shape overlaps it | Header text overlaps content (x >= startSize for horizontal=0; y >= startSize for horizontal=1) |
 | 9 | Min 40px gutter on all sides of each shape; min 30px around container headers | Crowded layout |
-| 10 | Hub-radial center shapes must have enough gap between quadrants (gap width >= shape width) | Center shape overlaps surrounding quadrant containers |
+| 10 | Hub-radial: horizontal distance between left/right containers ≥ hub.width; vertical distance between top/bottom containers ≥ hub.height | Hub shape overlaps surrounding containers |
 | 11 | Edges in a layer **before** the icon layer | Edges drawn over icons |
 | 12 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
 | 13 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |

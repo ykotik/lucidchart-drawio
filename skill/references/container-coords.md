@@ -141,7 +141,7 @@ mxGeometry uses coords relative to its parent.
 | `parent="1"` on edge between two lane-shapes | Edge clipped on import / drifts on container move | Use lowest common ancestor as edge parent |
 | `startSize=30` on container but first child at `y=0` | Child overlaps the container's title strip | For `horizontal=1` (top header), `y >= startSize`. For `horizontal=0` (left header), `x >= startSize`. |
 | Container without `startSize` set | Defaults to `startSize=20`; layout assumes more | Always set `startSize` explicitly |
-| Hub-radial center shape overlaps quadrants | Hub shape is larger than the gap between surrounding containers | Ensure gap `width >= hub width` and gap `height >= hub height`. |
+| Hub-radial center shape overlaps quadrants | Hub shape is larger than the gap between surrounding containers | Horizontal distance between left/right containers must be ≥ hub.width; vertical distance between top/bottom containers must be ≥ hub.height. |
 
 ---
 
