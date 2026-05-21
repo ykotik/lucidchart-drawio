@@ -225,6 +225,67 @@ def validate_model(model, diag, features=None):
                 if not horizontal and x < start_size - 1:
                     diag.warn("W103", f"Shape '{cid}' overlaps container '{p}' header (x={x} < startSize={start_size})")
 
+    # W112 container dead space > 30% of usable height/width
+    for cid in by_id:
+        if not is_vertex[cid]:
+            continue
+        st = styles[cid]
+        if "swimlane" not in st and st.get("container") != "1":
+            continue
+        g = geoms.get(cid)
+        if g is None:
+            continue
+        _, _, cw, ch = g
+        start_size = float(st.get("startSize", 26))
+        horizontal = st.get("horizontal", "1") != "0"
+        usable = (ch - start_size) if horizontal else (cw - start_size)
+        if usable < 100:  # skip tiny containers — rounding noise dominates
+            continue
+        children = [
+            k for k, v in parents.items()
+            if v == cid and is_vertex.get(k) and geoms.get(k) is not None
+        ]
+        if not children:
+            continue
+        if horizontal:
+            max_extent = max(geoms[k][1] + geoms[k][3] for k in children)
+        else:
+            max_extent = max(geoms[k][0] + geoms[k][2] for k in children)
+        used_frac = max_extent / usable if usable > 0 else 1.0
+        dead_pct = (1.0 - used_frac) * 100.0
+        if dead_pct > 30:
+            suggested_h = int(max_extent + start_size + 60)
+            diag.warn(
+                "W112",
+                f"Container '{cid}' has {dead_pct:.0f}% dead space "
+                f"(content uses {used_frac * 100:.0f}% of {usable:.0f}px usable space). "
+                f"Shrink height to ~{suggested_h}px."
+            )
+
+    # W113 orphan external shapes when primary container present
+    canvas_containers = [
+        cid for cid in by_id
+        if is_vertex.get(cid)
+        and parents.get(cid) == "1"
+        and ("swimlane" in styles.get(cid, {}) or styles.get(cid, {}).get("container") == "1")
+    ]
+    if len(canvas_containers) >= 1:
+        canvas_orphans = [
+            cid for cid in by_id
+            if is_vertex.get(cid)
+            and parents.get(cid) == "1"
+            and "swimlane" not in styles.get(cid, {})
+            and styles.get(cid, {}).get("container") != "1"
+        ]
+        if len(canvas_orphans) >= 2:
+            sample = ", ".join(f"'{c}'" for c in canvas_orphans[:5])
+            diag.warn(
+                "W113",
+                f"{len(canvas_orphans)} shapes sit directly on canvas alongside "
+                f"{len(canvas_containers)} container(s) — group them in a labelled "
+                f"dashed boundary (e.g. 'Internet Layer', 'External Services'): {sample}"
+            )
+
     # W104 edge parent should be lowest common ancestor of source/target
     def ancestors(cell_id):
         """Return list of ancestor ids from cell up to root."""
@@ -359,6 +420,26 @@ def _resolve_canvas_xy(cid, geoms, parents, by_id):
         y += py
         p = parents.get(p)
     return (x, y, w, h)
+
+
+def _segment_intersects_aabb(p1, p2, bx, by, bw, bh):
+    """Return True if segment p1–p2 crosses the interior of AABB (bx,by,bw,bh).
+
+    Checks all 4 sides of the box. Also returns True if either endpoint is
+    strictly inside the box. Callers must exclude source/target shapes themselves.
+    """
+    corners = [
+        (bx,      by     ),
+        (bx + bw, by     ),
+        (bx + bw, by + bh),
+        (bx,      by + bh),
+    ]
+    for i in range(4):
+        if _segments_intersect(p1, p2, corners[i], corners[(i + 1) % 4]):
+            return True
+    def _inside(p):
+        return bx < p[0] < bx + bw and by < p[1] < by + bh
+    return _inside(p1) or _inside(p2)
 
 
 def _segments_intersect(a1, a2, b1, b2):
@@ -547,6 +628,95 @@ def quality_metrics(by_id, parents, is_vertex, is_edge, geoms, styles, diag, fea
                 )
     if n_overflow > 0:
         diag.info("Q405", f"Text overflow: {n_overflow} cell(s) at current fontSize")
+
+    # ---------- W111 convergence node: >3 edges, no port constraints ----------
+    edge_count_per_node: dict = defaultdict(int)
+    node_has_port: dict = defaultdict(bool)
+
+    for cid, c in by_id.items():
+        if not is_edge[cid]:
+            continue
+        src = c.get("source")
+        tgt = c.get("target")
+        style_str = c.get("style") or ""
+        has_port = any(k in style_str for k in ("exitX=", "exitY=", "entryX=", "entryY="))
+        for node in (src, tgt):
+            if node and node in by_id:
+                edge_count_per_node[node] += 1
+                if has_port:
+                    node_has_port[node] = True
+
+    for node_id, count in edge_count_per_node.items():
+        if count > 3 and not node_has_port.get(node_id, False):
+            diag.warn(
+                "W111",
+                f"Vertex '{node_id}' has {count} edges but none specify exitX/Y or entryX/Y "
+                f"— all edges exit from the center, causing label pile-up and line crossing. "
+                f"Assign staggered exitX/entryX values (e.g. 0.25, 0.5, 0.75) per edge."
+            )
+
+    # ---------- W109 edge label midpoint intersects non-endpoint shape ----------
+    for cid, c in by_id.items():
+        if not is_edge[cid]:
+            continue
+        label = (c.get("value") or "").strip()
+        if not label:
+            continue
+        src = c.get("source")
+        tgt = c.get("target")
+        if not src or not tgt or src not in centers or tgt not in centers:
+            continue
+        # Check for label offset on mxGeometry
+        g = c.find("mxGeometry")
+        if g is not None:
+            lx = float(g.get("x") or 0)
+            ly = float(g.get("y") or 0)
+            if abs(lx) > 5 or abs(ly) > 5:
+                continue  # offset present — label is repositioned
+        sx, sy = centers[src]
+        tx, ty = centers[tgt]
+        mx, my = (sx + tx) / 2.0, (sy + ty) / 2.0
+        for shape_id in by_id:
+            if not is_vertex[shape_id] or shape_id in (src, tgt):
+                continue
+            ab = _resolve_canvas_xy(shape_id, geoms, parents, by_id)
+            if ab is None:
+                continue
+            bx, by_, bw, bh = ab
+            if bx <= mx <= bx + bw and by_ <= my <= by_ + bh:
+                diag.warn(
+                    "W109",
+                    f"Edge '{cid}' label midpoint ({mx:.0f},{my:.0f}) falls inside shape '{shape_id}' "
+                    f"— add x/y offset to mxGeometry: "
+                    f'<mxGeometry relative="1" x="0" y="-15" as="geometry"/>'
+                )
+                break
+
+    # ---------- W110 edge straight-line path passes through non-endpoint shape ----------
+    for cid, c in by_id.items():
+        if not is_edge[cid]:
+            continue
+        src = c.get("source")
+        tgt = c.get("target")
+        if not src or not tgt or src not in centers or tgt not in centers:
+            continue
+        p1 = centers[src]
+        p2 = centers[tgt]
+        for shape_id in by_id:
+            if not is_vertex[shape_id] or shape_id in (src, tgt):
+                continue
+            ab = _resolve_canvas_xy(shape_id, geoms, parents, by_id)
+            if ab is None:
+                continue
+            bx, by_, bw, bh = ab
+            if _segment_intersects_aabb(p1, p2, bx, by_, bw, bh):
+                diag.warn(
+                    "W110",
+                    f"Edge '{cid}' straight-line path passes through shape '{shape_id}' "
+                    f"— add waypoints or port constraints to route around it, "
+                    f"or run scripts/route-edges.py (F7)"
+                )
+                break
 
 
 # ============================================================ F3: grounding
