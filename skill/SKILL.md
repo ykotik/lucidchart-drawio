@@ -313,12 +313,13 @@ waypoints, label anchoring).
 | 5 | Cross-container edges have `parent="<common-ancestor>"` | Edge clipped or invisible |
 | 6 | No XML comments (`<!-- -->`) inside the model | Import may fail in Lucidchart |
 | 7 | HTML in `value` is escaped (`&amp;`, `&lt;`, `&gt;`, `&quot;`) | Malformed XML |
-| 8 | Container header reserved with `startSize=N` and no shape overlaps it | Header text overlaps content |
+| 8 | Container header reserved with `startSize=N` and no shape overlaps it | Header text overlaps content (x >= startSize for horizontal=0; y >= startSize for horizontal=1) |
 | 9 | Min 40px gutter on all sides of each shape; min 30px around container headers | Crowded layout |
-| 10 | Edges in a layer **before** the icon layer | Edges drawn over icons |
-| 11 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
-| 12 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
-| 13 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
+| 10 | Hub-radial: horizontal distance between left/right containers ≥ hub.width; vertical distance between top/bottom containers ≥ hub.height | Hub shape overlaps surrounding containers |
+| 11 | Edges in a layer **before** the icon layer | Edges drawn over icons |
+| 12 | All styles used are in the allowlist (`style-dictionary.md`) or vendor-vocabulary | Style fragments invented; broken in Lucidchart |
+| 13 | Font sizes consistent within a category (titles 14, labels 12, sub-labels 10) | Visual noise |
+| 14 | All labels fit declared geometry (`text_metrics` run clean — zero W106/W107/W108) | Text clips or overflows node box |
 
 ## Style allowlist
 

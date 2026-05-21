@@ -166,7 +166,7 @@ If turned off, `cite` is ignored. Use for sketchy exploration where source-traci
 | 2 | Every edge's `source` and `target` exist in `shapes[]` (or containers[]) | Build a set of all shape+container ids; check membership |
 | 3 | No two shapes share the same `grid_cell` | Build a `{(row,col) → shape_id}` map; check for duplicates |
 | 4 | Every container's children fit inside its `w` and `h` | For each container, find children where `x+w > container.w` or `y+h > container.h` |
-| 5 | Every container's first child clears `startSize` | For each container, find children with `y < startSize` |
+| 5 | Every container's first child clears `startSize` | Parse `horizontal` from the container's `style` string (default `1` if absent). `horizontal=1` → top header: flag children where `y < startSize`. `horizontal=0` → left header: flag children where `x < startSize`. |
 | 6 | Every edge's `parent` is the lowest common ancestor of source and target | Walk parent chain from source up; first ancestor that also contains target |
 | 7 | Shape and container ids are unique across the whole plan | Set membership check |
 
